@@ -58,7 +58,7 @@ const TaskDetailsScreen: React.FC = () => {
   }, []);
 
   const handleMakeOffer = () => {
-    Alert.alert('Make Offer', 'Offer functionality would be implemented here.');
+    navigation.navigate('MakeOfferDetails');
   };
 
   const handleFollow = () => {
@@ -229,9 +229,11 @@ const TaskDetailsScreen: React.FC = () => {
               <View style={styles.mobileImageGrid}>
                 {taskData.images.map((image, index) => (
                   <View key={index} style={styles.mobileImageContainer}>
-                    <View style={styles.mobileImagePlaceholder}>
-                      <Text style={styles.mobileImageText}>Image {index + 1}</Text>
-                    </View>
+                    <Image
+                      source={{ uri: image }}
+                      style={styles.mobileImage}
+                      resizeMode="cover"
+                    />
                   </View>
                 ))}
               </View>
@@ -244,6 +246,11 @@ const TaskDetailsScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
         </ScrollView>
+
+        {/* Floating CTA */}
+        <TouchableOpacity style={styles.fabMobile} onPress={handleMakeOffer}>
+          <Text style={styles.fabText}>Make an offer</Text>
+        </TouchableOpacity>
 
         {/* Bottom Tabs */}
         <View style={styles.mobileBottomTabs}>
@@ -418,9 +425,11 @@ const TaskDetailsScreen: React.FC = () => {
             <View style={styles.desktopImageGrid}>
               {taskData.images.map((image, index) => (
                 <View key={index} style={styles.desktopImageContainer}>
-                  <View style={styles.desktopImagePlaceholder}>
-                    <Text style={styles.desktopImageText}>Image {index + 1}</Text>
-                  </View>
+                  <Image
+                    source={{ uri: image }}
+                    style={styles.desktopImage}
+                    resizeMode="cover"
+                  />
                 </View>
               ))}
             </View>
@@ -433,6 +442,11 @@ const TaskDetailsScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Floating CTA */}
+      <TouchableOpacity style={styles.fabDesktop} onPress={handleMakeOffer}>
+        <Text style={styles.fabText}>Make an offer</Text>
+      </TouchableOpacity>
 
       {/* Bottom Tabs */}
       <View style={styles.desktopBottomTabs}>
@@ -501,7 +515,7 @@ const styles = StyleSheet.create({
   // Mobile styles
   mobileContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f7fafc',
   },
   mobileHeader: {
     flexDirection: 'row',
@@ -734,11 +748,16 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   mobileBudgetCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#ffffff',
     padding: 25,
     borderRadius: 15,
     marginBottom: 20,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    elevation: 4,
   },
   mobileBudgetLabel: {
     fontSize: 14,
@@ -817,6 +836,10 @@ const styles = StyleSheet.create({
   },
   mobileImageContainer: {
     flex: 1,
+    aspectRatio: 1,
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: '#f0f0f0',
   },
   mobileImagePlaceholder: {
     aspectRatio: 1,
@@ -825,9 +848,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  mobileImageText: {
-    fontSize: 14,
-    color: '#666',
+  mobileImage: {
+    width: '100%',
+    height: '100%',
   },
   mobileLessButton: {
     flexDirection: 'row',
@@ -848,6 +871,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
+    backgroundColor: '#fff',
   },
   mobileTabButton: {
     flex: 1,
@@ -926,7 +950,7 @@ const styles = StyleSheet.create({
   // Desktop styles
   desktopContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f7fafc',
   },
   desktopHeader: {
     flexDirection: 'row',
@@ -1090,11 +1114,16 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   desktopBudgetCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#ffffff',
     padding: 40,
     borderRadius: 20,
     marginBottom: 30,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 5,
   },
   desktopBudgetLabel: {
     fontSize: 16,
@@ -1173,6 +1202,10 @@ const styles = StyleSheet.create({
   },
   desktopImageContainer: {
     flex: 1,
+    aspectRatio: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#f0f0f0',
   },
   desktopImagePlaceholder: {
     aspectRatio: 1,
@@ -1181,9 +1214,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  desktopImageText: {
-    fontSize: 16,
-    color: '#666',
+  desktopImage: {
+    width: '100%',
+    height: '100%',
   },
   desktopLessButton: {
     flexDirection: 'row',
@@ -1204,6 +1237,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
+    backgroundColor: '#fff',
   },
   desktopTabButton: {
     flex: 1,
@@ -1277,6 +1311,44 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: PRIMARY_BLUE,
     fontWeight: '500',
+  },
+  // Floating CTA (mobile)
+  fabMobile: {
+    position: 'absolute',
+    right: 20,
+    bottom: 90,
+    backgroundColor: PRIMARY_YELLOW,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+    zIndex: 10,
+  },
+  fabText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000',
+  },
+
+  // Floating CTA (desktop)
+  fabDesktop: {
+    position: 'absolute',
+    right: 40,
+    bottom: 110,
+    backgroundColor: PRIMARY_YELLOW,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 14,
+    elevation: 6,
+    zIndex: 10,
   },
 });
 
