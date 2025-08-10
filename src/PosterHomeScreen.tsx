@@ -371,7 +371,7 @@ const PosterHomeScreen: React.FC = () => {
           </TouchableOpacity>
           <TouchableOpacity style={styles.mobileNavItem}>
             <Text style={styles.mobileNavIcon}>○</Text>
-            <Text style={styles.mobileNavText}>Chat</Text>
+            <Text style={styles.mobileNavText} onPress={() => navigation.navigate('Chat')}>Chat</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.mobileNavItem}

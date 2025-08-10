@@ -283,7 +283,7 @@ const PerformerHomeScreen = () => {
           </TouchableOpacity>
           <TouchableOpacity style={styles.mobileNavItem}>
             <Text style={styles.mobileNavIcon}>○</Text>
-            <Text style={styles.mobileNavLabel}>Chat</Text>
+            <Text style={styles.mobileNavLabel} onPress={() => navigation.navigate('Chat')}>Chat</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.mobileNavItem}>
             <Text style={styles.mobileNavIcon}>⚪</Text>
