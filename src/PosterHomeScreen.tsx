@@ -452,6 +452,12 @@ const PosterHomeScreen: React.FC = () => {
           {/* Right: Profile Icon */}
           <View style={styles.desktopRightMenu}>
             <TouchableOpacity 
+              style={styles.desktopMenuLink}
+              onPress={() => navigation.navigate('Chat')}
+            >
+              <Text style={styles.desktopMenuLinkText}>Chat</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
               style={styles.desktopProfileButton}
               onPress={() => navigation.navigate('Profile')}
             >
