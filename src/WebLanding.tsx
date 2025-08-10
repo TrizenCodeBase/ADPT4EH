@@ -52,7 +52,19 @@ const Header = ({ onNavigate }) => {
 
   const handleNavigate = (item) => {
     setActiveItem(item.label);
-    if (onNavigate) onNavigate(item.route);
+    if (item?.label === 'How it works') {
+      const el = document.getElementById('how-it-works');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else if (item?.label === 'Benefits') {
+      const el = document.getElementById('benefits');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else if (item?.route && onNavigate) {
+      onNavigate(item.route);
+    }
     setShowCategories(false);
     setShowMobileMenu(false);
   };

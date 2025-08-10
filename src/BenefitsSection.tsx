@@ -63,7 +63,7 @@ const benefits = [
 
 const BenefitsSection = () => {
   return (
-    <section style={{ padding: '64px 0 80px 0', background: '#fff' }}>
+    <section id="benefits" style={{ padding: '64px 0 80px 0', background: '#fff' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <h2 style={{ fontSize: 40, fontWeight: 700, color: '#000', marginBottom: 16, fontFamily: 'Inter, sans-serif' }}>

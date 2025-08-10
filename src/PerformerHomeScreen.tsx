@@ -15,81 +15,142 @@ const dummyTasks = [
   {
     id: 1,
     title: 'Replace a kitchen tap',
-    location: 'Hyderabad',
+    location: 'Paradise SA, Australia',
     date: 'Tomorrow',
     time: 'Anytime',
     price: 'RS 249',
+    budget: '₹249',
     status: 'Open',
+    poster: 'Myint K.',
+    postedTime: '7 minutes ago',
+    dueDate: 'Before Wed, 23 Jul',
+    dueTime: 'Anytime',
+    description: 'Replace a kitchen tap. Tap provided.',
+    images: [
+      'https://via.placeholder.com/300x200/4A90E2/FFFFFF?text=New+Tap',
+      'https://via.placeholder.com/300x200/7ED321/FFFFFF?text=Existing+Sink'
+    ],
     avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
   },
   {
     id: 2,
     title: 'Plumber (leakage fix, pipe installation, bathroom fitting)',
-    location: 'Hyderabad',
+    location: 'Hyderabad, India',
     date: 'Before 14 July',
     time: 'Anytime',
     price: 'RS 149',
+    budget: '₹149',
     status: 'Open',
+    poster: 'Rajesh S.',
+    postedTime: '15 minutes ago',
+    dueDate: 'Before Mon, 14 Jul',
+    dueTime: 'Flexible',
+    description: 'Need a professional plumber for leakage fix, pipe installation, and bathroom fitting. Multiple tasks to be completed.',
+    images: [
+      'https://via.placeholder.com/300x200/FF6B6B/FFFFFF?text=Leaking+Pipe',
+    ],
     avatar: 'https://randomuser.me/api/portraits/men/45.jpg',
   },
   {
     id: 3,
     title: 'Home Deep Cleaning',
-    location: 'Basheerbagh',
+    location: 'Basheerbagh, India',
     date: 'Tomorrow',
     time: 'Anytime',
     price: 'RS 249',
+    budget: '₹249',
     status: 'Open',
+    poster: 'Priya M.',
+    postedTime: '1 hour ago',
+    dueDate: 'Tomorrow',
+    dueTime: 'Anytime',
+    description: 'Deep cleaning required for 3BHK apartment. All rooms, kitchen, and bathrooms.',
+    images: [],
     avatar: 'https://randomuser.me/api/portraits/men/46.jpg',
   },
   {
     id: 4,
     title: 'Sofa & Carpet Cleaning',
-    location: 'Hyderabad',
+    location: 'Hyderabad, India',
     date: 'Flexible',
     time: '',
     price: 'RS 560',
+    budget: '₹560',
     status: 'Open',
+    poster: 'Kumar R.',
+    postedTime: '2 hours ago',
+    dueDate: 'Flexible',
+    dueTime: 'Anytime',
+    description: 'Professional cleaning needed for 3-seater sofa and large carpet in living room.',
+    images: [],
     avatar: 'https://randomuser.me/api/portraits/men/47.jpg',
   },
   {
     id: 5,
     title: 'Flyer drop in Northgate area',
-    location: 'Northgate SA',
+    location: 'Northgate SA, Australia',
     date: 'Before Mon, 4 Aug',
     time: 'Anytime',
     price: '$100',
+    budget: '$100',
     status: 'Open',
+    poster: 'Sarah L.',
+    postedTime: '3 hours ago',
+    dueDate: 'Before Mon, 4 Aug',
+    dueTime: 'Anytime',
+    description: 'Need someone to distribute promotional flyers in the Northgate residential area.',
+    images: [],
     avatar: 'https://randomuser.me/api/portraits/women/32.jpg',
   },
   {
     id: 6,
     title: 'I need to do gyprock fixing',
-    location: 'Enfield SA',
+    location: 'Enfield SA, Australia',
     date: 'Today',
     time: 'Anytime',
     price: '$50',
+    budget: '$50',
     status: 'Open',
+    poster: 'Mike D.',
+    postedTime: '4 hours ago',
+    dueDate: 'Today',
+    dueTime: 'Anytime',
+    description: 'Small gyprock repair needed in bedroom wall. Hole needs to be patched and painted.',
+    images: [],
     avatar: 'https://randomuser.me/api/portraits/men/48.jpg',
   },
   {
     id: 7,
     title: 'Flyer drop',
-    location: 'Northgate SA',
+    location: 'Northgate SA, Australia',
     date: 'Before Mon, 4 Aug',
     time: 'Anytime',
     price: '$100',
+    budget: '$100',
     status: 'Open',
+    poster: 'Emma W.',
+    postedTime: '5 hours ago',
+    dueDate: 'Before Mon, 4 Aug',
+    dueTime: 'Anytime',
+    description: 'Distribute business flyers in residential areas. Must cover specified streets.',
+    images: [],
     avatar: 'https://randomuser.me/api/portraits/women/32.jpg',
   },
   {
     id: 8,
     title: 'Social Media Assistant (Remote)',
-    location: 'Adelaide SA',
+    location: 'Adelaide SA, Australia',
     date: 'Flexible',
     time: 'Remote',
     price: '$200',
+    budget: '$200',
     status: 'Open',
+    poster: 'Jessica T.',
+    postedTime: '6 hours ago',
+    dueDate: 'Flexible',
+    dueTime: 'Remote work',
+    description: 'Need help managing social media accounts, creating content, and engaging with followers.',
+    images: [],
     avatar: 'https://randomuser.me/api/portraits/women/45.jpg',
   },
 ];
@@ -98,6 +159,7 @@ const PerformerHomeScreen = () => {
   const navigation = useNavigation();
   const [isMobileView, setIsMobileView] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(dummyTasks[0]); // Default to first task
   const dropdownRef = useRef<any>(null);
 
   // Handle category selection
@@ -110,12 +172,33 @@ const PerformerHomeScreen = () => {
 
   // Handle task card click
   const handleTaskClick = (taskId: number) => {
-    navigation.navigate('TaskDetails');
+    if (isMobileView) {
+      navigation.navigate('TaskDetails');
+    } else {
+      // For desktop, update the selected task to show in right panel
+      const task = dummyTasks.find(t => t.id === taskId);
+      if (task) {
+        setSelectedTask(task);
+      }
+    }
   };
 
   // Handle open button click
   const handleOpenClick = (taskId: number) => {
-    navigation.navigate('TaskDetails');
+    if (isMobileView) {
+      navigation.navigate('TaskDetails');
+    } else {
+      // For desktop, update the selected task to show in right panel
+      const task = dummyTasks.find(t => t.id === taskId);
+      if (task) {
+        setSelectedTask(task);
+      }
+    }
+  };
+
+  // Handle make offer button click
+  const handleMakeOffer = () => {
+    navigation.navigate('MakeOfferDetails');
   };
 
   // Check if we're on mobile web view
@@ -333,13 +416,13 @@ const PerformerHomeScreen = () => {
                             Math.floor((categories.length / 4) * (colIdx + 1))
                           )
                           .map((cat) => (
-                            <View 
+                            <TouchableOpacity 
                               key={cat} 
                               style={styles.desktopDropdownItem} 
-                              onTouchEnd={() => handleCategoryClick(cat)}
+                              onPress={() => handleCategoryClick(cat)}
                             >
                               <Text style={styles.desktopDropdownItemText}>{cat}</Text>
-                            </View>
+                            </TouchableOpacity>
                           ))}
                       </View>
                     ))}
@@ -404,7 +487,10 @@ const PerformerHomeScreen = () => {
             {dummyTasks.map(task => (
               <TouchableOpacity 
                 key={task.id} 
-                style={styles.desktopTaskCard}
+                style={[
+                  styles.desktopTaskCard,
+                  selectedTask.id === task.id && styles.desktopTaskCardSelected
+                ]}
                 onPress={() => handleTaskClick(task.id)}
               >
                 <View style={styles.desktopTaskContent}>
@@ -433,28 +519,105 @@ const PerformerHomeScreen = () => {
           </ScrollView>
         </View>
 
-        {/* Right Side - Map */}
-        <View style={styles.desktopMapSection}>
-          <View style={styles.desktopMapHeader}>
-            <Text style={styles.desktopMapTitle}>Task Locations</Text>
+        {/* Right Side - Task Details */}
+        <View style={styles.desktopTaskDetailsSection}>
+          <View style={styles.desktopTaskDetailsHeader}>
+            <Text style={styles.desktopTaskDetailsTitle}>Task Details</Text>
           </View>
-          <View style={styles.desktopMapContainer}>
-            <Image source={require('../assets/mapweb.jpg')} style={styles.desktopMapImage} />
-            <View style={styles.desktopMapControls}>
-              <TouchableOpacity style={styles.desktopMapControl}>
-                <Text style={styles.desktopMapControlIcon}>🎯</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.desktopMapControl}>
-                <Text style={styles.desktopMapControlIcon}>+</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.desktopMapControl}>
-                <Text style={styles.desktopMapControlIcon}>-</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.desktopMapControl}>
-                <Text style={styles.desktopMapControlIcon}>↑</Text>
-              </TouchableOpacity>
+          <ScrollView style={styles.desktopTaskDetailsScroll} showsVerticalScrollIndicator={true}>
+            <View style={styles.desktopTaskDetailsContent}>
+              
+              {/* Status Badge */}
+              <View style={styles.desktopTaskDetailsStatusContainer}>
+                <View style={styles.desktopTaskDetailsStatusBadge}>
+                  <Text style={styles.desktopTaskDetailsStatusText}>{selectedTask.status}</Text>
+                </View>
+              </View>
+
+              {/* Task Title */}
+              <Text style={styles.desktopTaskDetailsTaskTitle}>{selectedTask.title}</Text>
+
+              {/* Price and Make Offer Section */}
+              <View style={styles.desktopTaskDetailsPriceCard}>
+                <Text style={styles.desktopTaskDetailsPriceLabel}>Task Budget</Text>
+                <Text style={styles.desktopTaskDetailsPriceAmount}>{selectedTask.budget}</Text>
+                <TouchableOpacity style={styles.desktopTaskDetailsMakeOfferButton} onPress={handleMakeOffer}>
+                  <Text style={styles.desktopTaskDetailsMakeOfferText}>Make an offer</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Task Information Card */}
+              <View style={styles.desktopTaskDetailsInfoCard}>
+                
+                {/* Poster Information */}
+                <View style={styles.desktopTaskDetailsInfoSection}>
+                  <View style={styles.desktopTaskDetailsInfoRow}>
+                    <View style={styles.desktopTaskDetailsInfoIcon}>
+                      <View style={styles.desktopTaskDetailsPosterAvatar}>
+                        <Text style={styles.desktopTaskDetailsPosterInitial}>{selectedTask.poster.charAt(0)}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.desktopTaskDetailsInfoContent}>
+                      <Text style={styles.desktopTaskDetailsInfoLabel}>Posted by</Text>
+                      <Text style={styles.desktopTaskDetailsInfoValue}>{selectedTask.poster}</Text>
+                      <Text style={styles.desktopTaskDetailsInfoSubtext}>{selectedTask.postedTime}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Location */}
+                <View style={styles.desktopTaskDetailsInfoSection}>
+                  <View style={styles.desktopTaskDetailsInfoRow}>
+                    <View style={styles.desktopTaskDetailsInfoIcon}>
+                      <Text style={styles.desktopTaskDetailsInfoIconText}>📍</Text>
+                    </View>
+                    <View style={styles.desktopTaskDetailsInfoContent}>
+                      <Text style={styles.desktopTaskDetailsInfoLabel}>Location</Text>
+                      <Text style={styles.desktopTaskDetailsInfoValue}>{selectedTask.location}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Due Date */}
+                <View style={styles.desktopTaskDetailsInfoSection}>
+                  <View style={styles.desktopTaskDetailsInfoRow}>
+                    <View style={styles.desktopTaskDetailsInfoIcon}>
+                      <Text style={styles.desktopTaskDetailsInfoIconText}>📅</Text>
+                    </View>
+                    <View style={styles.desktopTaskDetailsInfoContent}>
+                      <Text style={styles.desktopTaskDetailsInfoLabel}>Due date</Text>
+                      <Text style={styles.desktopTaskDetailsInfoValue}>{selectedTask.dueDate}</Text>
+                      <Text style={styles.desktopTaskDetailsInfoSubtext}>{selectedTask.dueTime}</Text>
+                    </View>
+                  </View>
+                </View>
+
+              </View>
+
+              {/* Task Description */}
+              <View style={styles.desktopTaskDetailsDescriptionCard}>
+                <Text style={styles.desktopTaskDetailsDescriptionTitle}>What you need to do</Text>
+                <Text style={styles.desktopTaskDetailsDescriptionText}>{selectedTask.description}</Text>
+              </View>
+
+              {/* Task Images */}
+              {selectedTask.images && selectedTask.images.length > 0 && (
+                <View style={styles.desktopTaskDetailsImagesCard}>
+                  <Text style={styles.desktopTaskDetailsImagesTitle}>Photos</Text>
+                  <View style={styles.desktopTaskDetailsImageGrid}>
+                    {selectedTask.images.map((image, index) => (
+                      <View key={index} style={styles.desktopTaskDetailsImageContainer}>
+                        <View style={styles.desktopTaskDetailsImagePlaceholder}>
+                          <Text style={styles.desktopTaskDetailsImageText}>Photo {index + 1}</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
             </View>
-          </View>
+          </ScrollView>
         </View>
       </View>
 
@@ -475,11 +638,15 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 50 : 20,
     paddingHorizontal: 20,
     paddingBottom: 20,
+    position: 'relative',
+    zIndex: 2000,
   },
   desktopHeaderContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    position: 'relative',
+    zIndex: 2000,
   },
   desktopLogoSection: {
     flexDirection: 'row',
@@ -683,59 +850,185 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
-  desktopMapSection: {
+  desktopTaskCardSelected: {
+    borderWidth: 2,
+    borderColor: PRIMARY_BLUE,
+    backgroundColor: '#f0f7ff',
+  },
+  desktopTaskDetailsSection: {
     flex: 1,
     backgroundColor: '#f9fafb',
     display: 'flex',
     flexDirection: 'column',
     height: 600, // Fixed height to match task list
   },
-  desktopMapHeader: {
+  desktopTaskDetailsHeader: {
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
     backgroundColor: '#fff',
   },
-  desktopMapTitle: {
+  desktopTaskDetailsTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
   },
-  desktopMapContainer: {
+  desktopTaskDetailsScroll: {
     flex: 1,
-    position: 'relative',
   },
-  desktopMapImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+  desktopTaskDetailsContent: {
+    padding: 20,
   },
-  desktopMapControls: {
-    position: 'absolute',
-    bottom: 16,
-    right: 16,
-    backgroundColor: '#fff',
+  desktopTaskDetailsStatusContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  desktopTaskDetailsStatusBadge: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 15,
+  },
+  desktopTaskDetailsStatusText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  desktopTaskDetailsTaskTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  desktopTaskDetailsPriceCard: {
+    backgroundColor: '#f8f9fa',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  desktopTaskDetailsPriceLabel: {
+    fontSize: 12,
+    color: '#666',
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  desktopTaskDetailsPriceAmount: {
+    fontSize: 28,
+    color: PRIMARY_BLUE,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  desktopTaskDetailsMakeOfferButton: {
+    backgroundColor: PRIMARY_YELLOW,
+    paddingHorizontal: 30,
+    paddingVertical: 12,
     borderRadius: 8,
-    padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
-  desktopMapControl: {
-    width: 32,
-    height: 32,
-    borderRadius: 4,
-    backgroundColor: '#f9fafb',
+  desktopTaskDetailsMakeOfferText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  desktopTaskDetailsInfoCard: {
+    backgroundColor: '#f8f9fa',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 20,
+  },
+  desktopTaskDetailsInfoSection: {
+    marginBottom: 15,
+  },
+  desktopTaskDetailsInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  desktopTaskDetailsInfoIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: PRIMARY_BLUE,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 4,
+    marginRight: 15,
   },
-  desktopMapControlIcon: {
+  desktopTaskDetailsPosterAvatar: {
+    backgroundColor: PRIMARY_BLUE,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  desktopTaskDetailsPosterInitial: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  desktopTaskDetailsInfoContent: {
+    flex: 1,
+  },
+  desktopTaskDetailsInfoLabel: {
+    fontSize: 12,
+    color: '#666',
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  desktopTaskDetailsInfoValue: {
+    fontSize: 16,
+    color: '#000',
+    fontWeight: '500',
+  },
+  desktopTaskDetailsInfoSubtext: {
     fontSize: 14,
-    color: '#374151',
+    color: '#666',
+    marginTop: 2,
+  },
+  desktopTaskDetailsInfoIconText: {
+    fontSize: 18,
+  },
+  desktopTaskDetailsDescriptionCard: {
+    backgroundColor: '#f8f9fa',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 20,
+  },
+  desktopTaskDetailsDescriptionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 10,
+  },
+  desktopTaskDetailsDescriptionText: {
+    fontSize: 16,
+    color: '#333',
+    lineHeight: 24,
+  },
+  desktopTaskDetailsImagesCard: {
+    marginBottom: 20,
+  },
+  desktopTaskDetailsImagesTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 10,
+  },
+  desktopTaskDetailsImageGrid: {
+    flexDirection: 'row',
+    gap: 15,
+  },
+  desktopTaskDetailsImageContainer: {
+    flex: 1,
+  },
+  desktopTaskDetailsImagePlaceholder: {
+    aspectRatio: 1,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  desktopTaskDetailsImageText: {
+    fontSize: 14,
+    color: '#666',
   },
   desktopDropdownContainer: {
     position: 'relative',
@@ -748,39 +1041,42 @@ const styles = StyleSheet.create({
   desktopCategoriesDropdown: {
     position: 'absolute',
     top: '100%',
-    left: 0,
+    left: '50%',
+    marginLeft: -325,
     backgroundColor: '#fff',
     borderRadius: 8,
-    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    zIndex: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
+    zIndex: 3000,
+    padding: 24,
+    minWidth: 650,
+    maxHeight: 350,
+    overflow: 'scroll',
   },
   desktopDropdownContent: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     justifyContent: 'space-between',
-    gap: 12,
+    padding: 0,
   },
   desktopDropdownColumn: {
-    width: '48%', // Adjust as needed for 2 columns
-    gap: 8,
+    width: '24%',
+    marginBottom: 0,
   },
   desktopDropdownItem: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    paddingVertical: 4,
+    paddingHorizontal: 0,
+    borderRadius: 4,
   },
   desktopDropdownItemText: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#374151',
-    fontWeight: '500',
+    fontWeight: '400',
   },
 
   // Mobile styles (existing)

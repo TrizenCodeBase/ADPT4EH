@@ -84,7 +84,7 @@ const TaskDetailsScreen: React.FC = () => {
   if (isMobileView) {
     return (
       <View style={styles.mobileContainer}>
-        {/* Header */}
+        {/* Simple Header */}
         <View style={styles.mobileHeader}>
           <TouchableOpacity 
             style={styles.mobileBackButton}
@@ -93,164 +93,129 @@ const TaskDetailsScreen: React.FC = () => {
             <Text style={styles.mobileBackIcon}>←</Text>
           </TouchableOpacity>
           
-          <View style={styles.mobileHeaderCenter}>
-            <Text style={styles.mobileTaskTitle} numberOfLines={1}>
-              {taskData.title}
-            </Text>
-            <Text style={styles.mobileDomain}>extrahand.com</Text>
-          </View>
+          <Text style={styles.mobileHeaderTitle}>Task Details</Text>
           
-          <View style={styles.mobileHeaderRight}>
-            <TouchableOpacity style={styles.mobileHeaderIcon}>
-              <Text style={styles.mobileHeaderIconText}>📤</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.mobileHeaderIcon}>
-              <Text style={styles.mobileHeaderIconText}>🔖</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.mobileHeaderIcon}>
-              <Text style={styles.mobileHeaderIconText}>⋯</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* App Header */}
-        <View style={styles.mobileAppHeader}>
-          <TouchableOpacity style={styles.mobileMenuButton}>
-            <Text style={styles.mobileMenuIcon}>☰</Text>
-          </TouchableOpacity>
-          
-          <Image
-            source={require('../assets/images/extrahand-logo.png')}
-            style={styles.mobileLogo}
-            resizeMode="contain"
-          />
-          
-          <TouchableOpacity style={styles.mobileAddButton}>
-            <Text style={styles.mobileAddIcon}>+</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Filters */}
-        <View style={styles.mobileFilters}>
-          <TouchableOpacity style={styles.mobileFilterButton}>
-            <Text style={styles.mobileFilterText}>Category</Text>
-            <Text style={styles.mobileFilterArrow}>▼</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.mobileFilterButton}>
-            <Text style={styles.mobileFilterText}>50km Adelaide SA</Text>
-            <Text style={styles.mobileFilterArrow}>▼</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.mobileFilterButton}>
-            <Text style={styles.mobileFilterText}>Any</Text>
-            <Text style={styles.mobileFilterIcon}>🔍</Text>
+          <TouchableOpacity style={styles.mobileShareButton}>
+            <Text style={styles.mobileShareIcon}>📤</Text>
           </TouchableOpacity>
         </View>
 
         {/* Main Content */}
         <ScrollView style={styles.mobileScrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.mobileContentContainer}>
-            {/* Status and Follow */}
-            <View style={styles.mobileStatusRow}>
-              <View style={styles.mobileStatusTag}>
+            
+            {/* Status Badge */}
+            <View style={styles.mobileStatusContainer}>
+              <View style={styles.mobileStatusBadge}>
                 <Text style={styles.mobileStatusText}>{taskData.status}</Text>
               </View>
-              <TouchableOpacity style={styles.mobileFollowButton} onPress={handleFollow}>
-                <Text style={styles.mobileFollowIcon}>❤️</Text>
-                <Text style={styles.mobileFollowText}>Follow</Text>
-              </TouchableOpacity>
             </View>
 
             {/* Task Title */}
-            <Text style={styles.mobileMainTitle}>{taskData.title}</Text>
+            <Text style={styles.mobileTaskTitle}>{taskData.title}</Text>
 
-            {/* Poster Info */}
-            <View style={styles.mobilePosterInfo}>
-              <View style={styles.mobilePosterAvatar}>
-                <Text style={styles.mobilePosterInitial}>M</Text>
+            {/* Price and Make Offer Section */}
+            <View style={styles.mobilePriceSection}>
+              <View style={styles.mobilePriceContainer}>
+                <Text style={styles.mobilePriceLabel}>Task Budget</Text>
+                <Text style={styles.mobilePriceAmount}>{taskData.budget}</Text>
               </View>
-              <View style={styles.mobilePosterDetails}>
-                <Text style={styles.mobilePosterLabel}>POSTED BY</Text>
-                <Text style={styles.mobilePosterName}>{taskData.poster}</Text>
-              </View>
-              <Text style={styles.mobilePosterTime}>{taskData.postedTime}</Text>
-            </View>
-
-            {/* Location */}
-            <View style={styles.mobileInfoRow}>
-              <Text style={styles.mobileInfoIcon}>📍</Text>
-              <View style={styles.mobileInfoContent}>
-                <Text style={styles.mobileInfoLabel}>LOCATION</Text>
-                <Text style={styles.mobileInfoValue}>{taskData.location}</Text>
-              </View>
-              <TouchableOpacity onPress={handleViewMap}>
-                <Text style={styles.mobileViewMapText}>View map</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Due Date */}
-            <View style={styles.mobileInfoRow}>
-              <Text style={styles.mobileInfoIcon}>📅</Text>
-              <View style={styles.mobileInfoContent}>
-                <Text style={styles.mobileInfoLabel}>TO BE DONE ON</Text>
-                <Text style={styles.mobileInfoValue}>{taskData.dueDate}</Text>
-                <Text style={styles.mobileInfoSubtext}>{taskData.dueTime}</Text>
-              </View>
-            </View>
-
-            {/* Budget Card */}
-            <View style={styles.mobileBudgetCard}>
-              <Text style={styles.mobileBudgetLabel}>TASK BUDGET</Text>
-              <Text style={styles.mobileBudgetAmount}>{taskData.budget}</Text>
               <TouchableOpacity style={styles.mobileMakeOfferButton} onPress={handleMakeOffer}>
                 <Text style={styles.mobileMakeOfferText}>Make an offer</Text>
               </TouchableOpacity>
             </View>
 
-            {/* More Options */}
-            <TouchableOpacity style={styles.mobileMoreOptionsButton} onPress={handleMoreOptions}>
-              <Text style={styles.mobileMoreOptionsText}>More Options</Text>
-              <Text style={styles.mobileMoreOptionsArrow}>▼</Text>
-            </TouchableOpacity>
-
-            {/* Report Link */}
-            <TouchableOpacity style={styles.mobileReportButton}>
-              <Text style={styles.mobileReportIcon}>🚩</Text>
-              <Text style={styles.mobileReportText}>Report this task</Text>
-            </TouchableOpacity>
-
-            {/* Details Section */}
-            <View style={styles.mobileDetailsSection}>
-              <Text style={styles.mobileDetailsTitle}>Details</Text>
-              <Text style={styles.mobileDetailsText}>{taskData.description}</Text>
-            </View>
-
-            {/* Images */}
-            <View style={styles.mobileImagesSection}>
-              <View style={styles.mobileImageGrid}>
-                {taskData.images.map((image, index) => (
-                  <View key={index} style={styles.mobileImageContainer}>
-                    <Image
-                      source={{ uri: image }}
-                      style={styles.mobileImage}
-                      resizeMode="cover"
-                    />
+            {/* Task Information Card */}
+            <View style={styles.mobileInfoCard}>
+              
+              {/* Poster Information */}
+              <View style={styles.mobileInfoSection}>
+                <View style={styles.mobileInfoRow}>
+                  <View style={styles.mobileInfoIcon}>
+                    <View style={styles.mobilePosterAvatar}>
+                      <Text style={styles.mobilePosterInitial}>M</Text>
+                    </View>
                   </View>
-                ))}
+                  <View style={styles.mobileInfoContent}>
+                    <Text style={styles.mobileInfoLabel}>Posted by</Text>
+                    <Text style={styles.mobileInfoValue}>{taskData.poster}</Text>
+                    <Text style={styles.mobileInfoSubtext}>{taskData.postedTime}</Text>
+                  </View>
+                </View>
               </View>
+
+              {/* Location */}
+              <View style={styles.mobileInfoSection}>
+                <View style={styles.mobileInfoRow}>
+                  <View style={styles.mobileInfoIcon}>
+                    <Text style={styles.mobileInfoIconText}>📍</Text>
+                  </View>
+                  <View style={styles.mobileInfoContent}>
+                    <Text style={styles.mobileInfoLabel}>Location</Text>
+                    <Text style={styles.mobileInfoValue}>{taskData.location}</Text>
+                  </View>
+                  <TouchableOpacity onPress={handleViewMap}>
+                    <Text style={styles.mobileViewMapText}>View map</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Due Date */}
+              <View style={styles.mobileInfoSection}>
+                <View style={styles.mobileInfoRow}>
+                  <View style={styles.mobileInfoIcon}>
+                    <Text style={styles.mobileInfoIconText}>📅</Text>
+                  </View>
+                  <View style={styles.mobileInfoContent}>
+                    <Text style={styles.mobileInfoLabel}>Due date</Text>
+                    <Text style={styles.mobileInfoValue}>{taskData.dueDate}</Text>
+                    <Text style={styles.mobileInfoSubtext}>{taskData.dueTime}</Text>
+                  </View>
+                </View>
+              </View>
+
             </View>
 
-            {/* Less Link */}
-            <TouchableOpacity style={styles.mobileLessButton}>
-              <Text style={styles.mobileLessText}>Less</Text>
-              <Text style={styles.mobileLessArrow}>▲</Text>
-            </TouchableOpacity>
+            {/* Task Description */}
+            <View style={styles.mobileDescriptionCard}>
+              <Text style={styles.mobileDescriptionTitle}>What you need to do</Text>
+              <Text style={styles.mobileDescriptionText}>{taskData.description}</Text>
+            </View>
+
+            {/* Task Images */}
+            {taskData.images && taskData.images.length > 0 && (
+              <View style={styles.mobileImagesCard}>
+                <Text style={styles.mobileImagesTitle}>Photos</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.mobileImagesScroll}>
+                  {taskData.images.map((image, index) => (
+                    <View key={index} style={styles.mobileImageContainer}>
+                      <View style={styles.mobileImagePlaceholder}>
+                        <Text style={styles.mobileImageText}>Photo {index + 1}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Action Buttons */}
+            <View style={styles.mobileActionButtons}>
+              <TouchableOpacity style={styles.mobileFollowButton} onPress={handleFollow}>
+                <Text style={styles.mobileFollowIcon}>❤️</Text>
+                <Text style={styles.mobileFollowText}>Follow Task</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.mobileReportButton}>
+                <Text style={styles.mobileReportIcon}>🚩</Text>
+                <Text style={styles.mobileReportText}>Report</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Bottom Spacing */}
+            <View style={styles.mobileBottomSpacing} />
+
           </View>
         </ScrollView>
-
-        {/* Floating CTA */}
-        <TouchableOpacity style={styles.fabMobile} onPress={handleMakeOffer}>
-          <Text style={styles.fabText}>Make an offer</Text>
-        </TouchableOpacity>
 
         {/* Bottom Tabs */}
         <View style={styles.mobileBottomTabs}>
@@ -265,7 +230,7 @@ const TaskDetailsScreen: React.FC = () => {
               styles.mobileTabText,
               activeTab === 'offers' && styles.mobileTabTextActive
             ]}>
-              Offers
+              Offers (0)
             </Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -279,7 +244,7 @@ const TaskDetailsScreen: React.FC = () => {
               styles.mobileTabText,
               activeTab === 'questions' && styles.mobileTabTextActive
             ]}>
-              Questions
+              Questions (0)
             </Text>
           </TouchableOpacity>
         </View>
@@ -327,126 +292,142 @@ const TaskDetailsScreen: React.FC = () => {
           <Text style={styles.desktopBackIcon}>←</Text>
         </TouchableOpacity>
         
-        <Text style={styles.desktopTitle}>{taskData.title}</Text>
+        <Text style={styles.desktopHeaderTitle}>Task Details</Text>
         
-        <View style={styles.desktopHeaderActions}>
-          <TouchableOpacity style={styles.desktopHeaderButton}>
-            <Text style={styles.desktopHeaderButtonText}>📤</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.desktopHeaderButton}>
-            <Text style={styles.desktopHeaderButtonText}>🔖</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.desktopHeaderButton}>
-            <Text style={styles.desktopHeaderButtonText}>⋯</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={styles.desktopShareButton}>
+          <Text style={styles.desktopShareIcon}>📤</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Main Content */}
       <ScrollView style={styles.desktopScrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.desktopContentContainer}>
-          {/* Status and Follow */}
-          <View style={styles.desktopStatusRow}>
-            <View style={styles.desktopStatusTag}>
+          
+          {/* Status Badge */}
+          <View style={styles.desktopStatusContainer}>
+            <View style={styles.desktopStatusBadge}>
               <Text style={styles.desktopStatusText}>{taskData.status}</Text>
             </View>
-            <TouchableOpacity style={styles.desktopFollowButton} onPress={handleFollow}>
-              <Text style={styles.desktopFollowIcon}>❤️</Text>
-              <Text style={styles.desktopFollowText}>Follow</Text>
-            </TouchableOpacity>
           </View>
 
           {/* Task Title */}
-          <Text style={styles.desktopMainTitle}>{taskData.title}</Text>
+          <Text style={styles.desktopTaskTitle}>{taskData.title}</Text>
 
-          {/* Poster Info */}
-          <View style={styles.desktopPosterInfo}>
-            <View style={styles.desktopPosterAvatar}>
-              <Text style={styles.desktopPosterInitial}>M</Text>
-            </View>
-            <View style={styles.desktopPosterDetails}>
-              <Text style={styles.desktopPosterLabel}>POSTED BY</Text>
-              <Text style={styles.desktopPosterName}>{taskData.poster}</Text>
-            </View>
-            <Text style={styles.desktopPosterTime}>{taskData.postedTime}</Text>
-          </View>
-
-          {/* Location */}
-          <View style={styles.desktopInfoRow}>
-            <Text style={styles.desktopInfoIcon}>📍</Text>
-            <View style={styles.desktopInfoContent}>
-              <Text style={styles.desktopInfoLabel}>LOCATION</Text>
-              <Text style={styles.desktopInfoValue}>{taskData.location}</Text>
-            </View>
-            <TouchableOpacity onPress={handleViewMap}>
-              <Text style={styles.desktopViewMapText}>View map</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Due Date */}
-          <View style={styles.desktopInfoRow}>
-            <Text style={styles.desktopInfoIcon}>📅</Text>
-            <View style={styles.desktopInfoContent}>
-              <Text style={styles.desktopInfoLabel}>TO BE DONE ON</Text>
-              <Text style={styles.desktopInfoValue}>{taskData.dueDate}</Text>
-              <Text style={styles.desktopInfoSubtext}>{taskData.dueTime}</Text>
-            </View>
-          </View>
-
-          {/* Budget Card */}
-          <View style={styles.desktopBudgetCard}>
-            <Text style={styles.desktopBudgetLabel}>TASK BUDGET</Text>
-            <Text style={styles.desktopBudgetAmount}>{taskData.budget}</Text>
-            <TouchableOpacity style={styles.desktopMakeOfferButton} onPress={handleMakeOffer}>
-              <Text style={styles.desktopMakeOfferText}>Make an offer</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* More Options */}
-          <TouchableOpacity style={styles.desktopMoreOptionsButton} onPress={handleMoreOptions}>
-            <Text style={styles.desktopMoreOptionsText}>More Options</Text>
-            <Text style={styles.desktopMoreOptionsArrow}>▼</Text>
-          </TouchableOpacity>
-
-          {/* Report Link */}
-          <TouchableOpacity style={styles.desktopReportButton}>
-            <Text style={styles.desktopReportIcon}>🚩</Text>
-            <Text style={styles.desktopReportText}>Report this task</Text>
-          </TouchableOpacity>
-
-          {/* Details Section */}
-          <View style={styles.desktopDetailsSection}>
-            <Text style={styles.desktopDetailsTitle}>Details</Text>
-            <Text style={styles.desktopDetailsText}>{taskData.description}</Text>
-          </View>
-
-          {/* Images */}
-          <View style={styles.desktopImagesSection}>
-            <View style={styles.desktopImageGrid}>
-              {taskData.images.map((image, index) => (
-                <View key={index} style={styles.desktopImageContainer}>
-                  <Image
-                    source={{ uri: image }}
-                    style={styles.desktopImage}
-                    resizeMode="cover"
-                  />
+          {/* Two Column Layout */}
+          <View style={styles.desktopTwoColumn}>
+            
+            {/* Left Column - Task Information */}
+            <View style={styles.desktopLeftColumn}>
+              
+              {/* Task Information Card */}
+              <View style={styles.desktopInfoCard}>
+                
+                {/* Poster Information */}
+                <View style={styles.desktopInfoSection}>
+                  <View style={styles.desktopInfoRow}>
+                    <View style={styles.desktopInfoIcon}>
+                      <View style={styles.desktopPosterAvatar}>
+                        <Text style={styles.desktopPosterInitial}>M</Text>
+                      </View>
+                    </View>
+                    <View style={styles.desktopInfoContent}>
+                      <Text style={styles.desktopInfoLabel}>Posted by</Text>
+                      <Text style={styles.desktopInfoValue}>{taskData.poster}</Text>
+                      <Text style={styles.desktopInfoSubtext}>{taskData.postedTime}</Text>
+                    </View>
+                  </View>
                 </View>
-              ))}
+
+                {/* Location */}
+                <View style={styles.desktopInfoSection}>
+                  <View style={styles.desktopInfoRow}>
+                    <View style={styles.desktopInfoIcon}>
+                      <Text style={styles.desktopInfoIconText}>📍</Text>
+                    </View>
+                    <View style={styles.desktopInfoContent}>
+                      <Text style={styles.desktopInfoLabel}>Location</Text>
+                      <Text style={styles.desktopInfoValue}>{taskData.location}</Text>
+                    </View>
+                    <TouchableOpacity onPress={handleViewMap}>
+                      <Text style={styles.desktopViewMapText}>View map</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Due Date */}
+                <View style={styles.desktopInfoSection}>
+                  <View style={styles.desktopInfoRow}>
+                    <View style={styles.desktopInfoIcon}>
+                      <Text style={styles.desktopInfoIconText}>📅</Text>
+                    </View>
+                    <View style={styles.desktopInfoContent}>
+                      <Text style={styles.desktopInfoLabel}>Due date</Text>
+                      <Text style={styles.desktopInfoValue}>{taskData.dueDate}</Text>
+                      <Text style={styles.desktopInfoSubtext}>{taskData.dueTime}</Text>
+                    </View>
+                  </View>
+                </View>
+
+              </View>
+
+              {/* Task Description */}
+              <View style={styles.desktopDescriptionCard}>
+                <Text style={styles.desktopDescriptionTitle}>What you need to do</Text>
+                <Text style={styles.desktopDescriptionText}>{taskData.description}</Text>
+              </View>
+
+              {/* Task Images */}
+              {taskData.images && taskData.images.length > 0 && (
+                <View style={styles.desktopImagesCard}>
+                  <Text style={styles.desktopImagesTitle}>Photos</Text>
+                  <View style={styles.desktopImageGrid}>
+                    {taskData.images.map((image, index) => (
+                      <View key={index} style={styles.desktopImageContainer}>
+                        <View style={styles.desktopImagePlaceholder}>
+                          <Text style={styles.desktopImageText}>Photo {index + 1}</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
             </View>
+
+            {/* Right Column - Price and Actions */}
+            <View style={styles.desktopRightColumn}>
+              
+              {/* Price and Make Offer Section */}
+              <View style={styles.desktopPriceCard}>
+                <Text style={styles.desktopPriceLabel}>Task Budget</Text>
+                <Text style={styles.desktopPriceAmount}>{taskData.budget}</Text>
+                <TouchableOpacity style={styles.desktopMakeOfferButton} onPress={handleMakeOffer}>
+                  <Text style={styles.desktopMakeOfferText}>Make an offer</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Action Buttons */}
+              <View style={styles.desktopActionButtons}>
+                <TouchableOpacity style={styles.desktopFollowButton} onPress={handleFollow}>
+                  <Text style={styles.desktopFollowIcon}>❤️</Text>
+                  <Text style={styles.desktopFollowText}>Follow Task</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.desktopReportButton}>
+                  <Text style={styles.desktopReportIcon}>🚩</Text>
+                  <Text style={styles.desktopReportText}>Report</Text>
+                </TouchableOpacity>
+              </View>
+
+            </View>
+
           </View>
 
-          {/* Less Link */}
-          <TouchableOpacity style={styles.desktopLessButton}>
-            <Text style={styles.desktopLessText}>Less</Text>
-            <Text style={styles.desktopLessArrow}>▲</Text>
-          </TouchableOpacity>
+          {/* Bottom Spacing */}
+          <View style={styles.desktopBottomSpacing} />
+
         </View>
       </ScrollView>
-
-      {/* Floating CTA */}
-      <TouchableOpacity style={styles.fabDesktop} onPress={handleMakeOffer}>
-        <Text style={styles.fabText}>Make an offer</Text>
-      </TouchableOpacity>
 
       {/* Bottom Tabs */}
       <View style={styles.desktopBottomTabs}>
@@ -461,7 +442,7 @@ const TaskDetailsScreen: React.FC = () => {
             styles.desktopTabText,
             activeTab === 'offers' && styles.desktopTabTextActive
           ]}>
-            Offers
+            Offers (0)
           </Text>
         </TouchableOpacity>
         <TouchableOpacity 
@@ -475,7 +456,7 @@ const TaskDetailsScreen: React.FC = () => {
             styles.desktopTabText,
             activeTab === 'questions' && styles.desktopTabTextActive
           ]}>
-            Questions
+            Questions (0)
           </Text>
         </TouchableOpacity>
       </View>
@@ -515,11 +496,12 @@ const styles = StyleSheet.create({
   // Mobile styles
   mobileContainer: {
     flex: 1,
-    backgroundColor: '#f7fafc',
+    backgroundColor: '#fff',
   },
   mobileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 50 : 20,
     paddingBottom: 15,
@@ -536,98 +518,30 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#000',
   },
-  mobileHeaderCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  mobileTaskTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+  mobileHeaderTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
     color: '#000',
     textAlign: 'center',
   },
-  mobileDomain: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 2,
-  },
-  mobileHeaderRight: {
-    flexDirection: 'row',
-    gap: 15,
-  },
-  mobileHeaderIcon: {
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mobileHeaderIconText: {
-    fontSize: 16,
-    color: '#666',
-  },
-  mobileAppHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  mobileMenuButton: {
+  mobileShareButton: {
     width: 40,
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  mobileMenuIcon: {
+  mobileShareIcon: {
     fontSize: 20,
+    color: '#666',
+  },
+  mobileTaskTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: '#000',
+    marginBottom: 20,
   },
-  mobileLogo: {
-    height: 30,
-    width: 120,
-  },
-  mobileAddButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: PRIMARY_BLUE,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mobileAddIcon: {
-    fontSize: 20,
-    color: '#fff',
-  },
-  mobileFilters: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  mobileFilterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  mobileFilterText: {
-    fontSize: 14,
-    color: '#666',
-    marginRight: 5,
-  },
-  mobileFilterArrow: {
-    fontSize: 12,
-    color: '#666',
-  },
-  mobileFilterIcon: {
-    fontSize: 14,
-    color: '#666',
+  mobileInfoIconText: {
+    fontSize: 18,
   },
   mobileScrollContent: {
     flex: 1,
@@ -635,93 +549,85 @@ const styles = StyleSheet.create({
   mobileContentContainer: {
     padding: 20,
   },
-  mobileStatusRow: {
+  mobileStatusContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  mobileStatusBadge: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 15,
+  },
+  mobileStatusText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  mobilePriceSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
   },
-  mobileStatusTag: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+  mobilePriceContainer: {
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
-  mobileStatusText: {
-    color: '#fff',
+  mobilePriceLabel: {
     fontSize: 12,
+    color: '#666',
+    textTransform: 'uppercase',
+  },
+  mobilePriceAmount: {
+    fontSize: 24,
+    color: PRIMARY_BLUE,
+    fontWeight: 'bold',
+  },
+  mobileMakeOfferButton: {
+    backgroundColor: PRIMARY_YELLOW,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  mobileMakeOfferText: {
+    color: '#000',
+    fontSize: 16,
     fontWeight: '600',
   },
-  mobileFollowButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: PRIMARY_BLUE,
-    borderRadius: 20,
-    backgroundColor: '#fff',
-  },
-  mobileFollowIcon: {
-    fontSize: 16,
-    marginRight: 5,
-  },
-  mobileFollowText: {
-    fontSize: 14,
-    color: PRIMARY_BLUE,
-    fontWeight: '500',
-  },
-  mobileMainTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
+  mobileInfoCard: {
+    backgroundColor: '#f8f9fa',
+    padding: 20,
+    borderRadius: 15,
     marginBottom: 20,
   },
-  mobilePosterInfo: {
+  mobileInfoSection: {
+    marginBottom: 15,
+  },
+  mobileInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
   },
-  mobilePosterAvatar: {
+  mobileInfoIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: PRIMARY_BLUE,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 15,
+  },
+  mobilePosterAvatar: {
+    backgroundColor: PRIMARY_BLUE,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   mobilePosterInitial: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  mobilePosterDetails: {
-    flex: 1,
-  },
-  mobilePosterLabel: {
-    fontSize: 12,
-    color: '#666',
-    textTransform: 'uppercase',
-  },
-  mobilePosterName: {
-    fontSize: 16,
-    color: '#000',
-    fontWeight: '500',
-  },
-  mobilePosterTime: {
-    fontSize: 14,
-    color: '#666',
-  },
-  mobileInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 15,
-  },
-  mobileInfoIcon: {
-    fontSize: 18,
-    marginRight: 12,
-    marginTop: 2,
   },
   mobileInfoContent: {
     flex: 1,
@@ -747,99 +653,38 @@ const styles = StyleSheet.create({
     color: PRIMARY_BLUE,
     fontWeight: '500',
   },
-  mobileBudgetCard: {
-    backgroundColor: '#ffffff',
-    padding: 25,
+  mobileDescriptionCard: {
+    backgroundColor: '#f8f9fa',
+    padding: 20,
     borderRadius: 15,
     marginBottom: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 14,
-    elevation: 4,
   },
-  mobileBudgetLabel: {
-    fontSize: 14,
-    color: '#666',
-    textTransform: 'uppercase',
-    marginBottom: 10,
-  },
-  mobileBudgetAmount: {
-    fontSize: 32,
-    color: PRIMARY_BLUE,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  mobileMakeOfferButton: {
-    backgroundColor: PRIMARY_YELLOW,
-    paddingHorizontal: 30,
-    paddingVertical: 12,
-    borderRadius: 25,
-  },
-  mobileMakeOfferText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  mobileMoreOptionsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-  mobileMoreOptionsText: {
-    fontSize: 16,
-    color: '#000',
-  },
-  mobileMoreOptionsArrow: {
-    fontSize: 14,
-    color: '#666',
-  },
-  mobileReportButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  mobileReportIcon: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  mobileReportText: {
-    fontSize: 14,
-    color: '#666',
-  },
-  mobileDetailsSection: {
-    marginBottom: 20,
-  },
-  mobileDetailsTitle: {
+  mobileDescriptionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
     marginBottom: 10,
   },
-  mobileDetailsText: {
+  mobileDescriptionText: {
     fontSize: 16,
     color: '#333',
     lineHeight: 24,
   },
-  mobileImagesSection: {
+  mobileImagesCard: {
     marginBottom: 20,
   },
-  mobileImageGrid: {
-    flexDirection: 'row',
-    gap: 10,
+  mobileImagesTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 10,
+  },
+  mobileImagesScroll: {
+    // Add any specific styles for the ScrollView if needed
   },
   mobileImageContainer: {
-    flex: 1,
-    aspectRatio: 1,
-    borderRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: '#f0f0f0',
+    width: 100, // Fixed width for horizontal scroll
+    marginRight: 10,
   },
   mobileImagePlaceholder: {
     aspectRatio: 1,
@@ -848,30 +693,59 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  mobileImage: {
-    width: '100%',
-    height: '100%',
+  mobileImageText: {
+    fontSize: 14,
+    color: '#666',
   },
-  mobileLessButton: {
+  mobileActionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+  },
+  mobileFollowButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: PRIMARY_BLUE,
+    borderRadius: 25,
+    backgroundColor: '#fff',
   },
-  mobileLessText: {
-    fontSize: 14,
-    color: PRIMARY_BLUE,
-    marginRight: 5,
+  mobileFollowIcon: {
+    fontSize: 18,
+    marginRight: 8,
   },
-  mobileLessArrow: {
-    fontSize: 12,
+  mobileFollowText: {
+    fontSize: 16,
     color: PRIMARY_BLUE,
+    fontWeight: '500',
+  },
+  mobileReportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#666',
+    borderRadius: 25,
+    backgroundColor: '#fff',
+  },
+  mobileReportIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  mobileReportText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  mobileBottomSpacing: {
+    height: 100, // Add some space at the bottom
   },
   mobileBottomTabs: {
     flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
-    backgroundColor: '#fff',
   },
   mobileTabButton: {
     flex: 1,
@@ -950,7 +824,7 @@ const styles = StyleSheet.create({
   // Desktop styles
   desktopContainer: {
     flex: 1,
-    backgroundColor: '#f7fafc',
+    backgroundColor: '#fff',
   },
   desktopHeader: {
     flexDirection: 'row',
@@ -972,25 +846,21 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#000',
   },
-  desktopTitle: {
+  desktopHeaderTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#000',
     flex: 1,
     textAlign: 'center',
   },
-  desktopHeaderActions: {
-    flexDirection: 'row',
-    gap: 20,
-  },
-  desktopHeaderButton: {
+  desktopShareButton: {
     width: 40,
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  desktopHeaderButtonText: {
-    fontSize: 18,
+  desktopShareIcon: {
+    fontSize: 20,
     color: '#666',
   },
   desktopScrollContent: {
@@ -1001,13 +871,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 'auto',
     padding: 60,
   },
-  desktopStatusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  desktopStatusContainer: {
     alignItems: 'center',
     marginBottom: 30,
   },
-  desktopStatusTag: {
+  desktopStatusBadge: {
     backgroundColor: '#4CAF50',
     paddingHorizontal: 15,
     paddingVertical: 8,
@@ -1017,6 +885,160 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  desktopTaskTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 30,
+  },
+  desktopTwoColumn: {
+    flexDirection: 'row',
+    gap: 30,
+    marginBottom: 30,
+  },
+  desktopLeftColumn: {
+    flex: 2,
+  },
+  desktopRightColumn: {
+    flex: 1,
+  },
+  desktopInfoCard: {
+    backgroundColor: '#f8f9fa',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 20,
+  },
+  desktopInfoSection: {
+    marginBottom: 15,
+  },
+  desktopInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  desktopInfoIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: PRIMARY_BLUE,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  desktopPosterAvatar: {
+    backgroundColor: PRIMARY_BLUE,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  desktopPosterInitial: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  desktopInfoContent: {
+    flex: 1,
+  },
+  desktopInfoLabel: {
+    fontSize: 14,
+    color: '#666',
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  desktopInfoValue: {
+    fontSize: 18,
+    color: '#000',
+    fontWeight: '500',
+  },
+  desktopInfoSubtext: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 4,
+  },
+  desktopInfoIconText: {
+    fontSize: 20,
+  },
+  desktopViewMapText: {
+    fontSize: 16,
+    color: PRIMARY_BLUE,
+    fontWeight: '500',
+  },
+  desktopDescriptionCard: {
+    backgroundColor: '#f8f9fa',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 20,
+  },
+  desktopDescriptionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 10,
+  },
+  desktopDescriptionText: {
+    fontSize: 16,
+    color: '#333',
+    lineHeight: 24,
+  },
+  desktopImagesCard: {
+    marginBottom: 20,
+  },
+  desktopImagesTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 10,
+  },
+  desktopImageGrid: {
+    flexDirection: 'row',
+    gap: 15,
+  },
+  desktopImageContainer: {
+    flex: 1,
+  },
+  desktopImagePlaceholder: {
+    aspectRatio: 1,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  desktopImageText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  desktopPriceCard: {
+    backgroundColor: '#f8f9fa',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 20,
+  },
+  desktopPriceLabel: {
+    fontSize: 12,
+    color: '#666',
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  desktopPriceAmount: {
+    fontSize: 28,
+    color: PRIMARY_BLUE,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  desktopMakeOfferButton: {
+    backgroundColor: PRIMARY_YELLOW,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  desktopMakeOfferText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  desktopActionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
   },
   desktopFollowButton: {
     flexDirection: 'row',
@@ -1037,207 +1059,31 @@ const styles = StyleSheet.create({
     color: PRIMARY_BLUE,
     fontWeight: '500',
   },
-  desktopMainTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 30,
-  },
-  desktopPosterInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  desktopPosterAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: PRIMARY_BLUE,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  desktopPosterInitial: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  desktopPosterDetails: {
-    flex: 1,
-  },
-  desktopPosterLabel: {
-    fontSize: 14,
-    color: '#666',
-    textTransform: 'uppercase',
-  },
-  desktopPosterName: {
-    fontSize: 18,
-    color: '#000',
-    fontWeight: '500',
-  },
-  desktopPosterTime: {
-    fontSize: 16,
-    color: '#666',
-  },
-  desktopInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 20,
-  },
-  desktopInfoIcon: {
-    fontSize: 20,
-    marginRight: 15,
-    marginTop: 2,
-  },
-  desktopInfoContent: {
-    flex: 1,
-  },
-  desktopInfoLabel: {
-    fontSize: 14,
-    color: '#666',
-    textTransform: 'uppercase',
-    marginBottom: 4,
-  },
-  desktopInfoValue: {
-    fontSize: 18,
-    color: '#000',
-    fontWeight: '500',
-  },
-  desktopInfoSubtext: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 4,
-  },
-  desktopViewMapText: {
-    fontSize: 16,
-    color: PRIMARY_BLUE,
-    fontWeight: '500',
-  },
-  desktopBudgetCard: {
-    backgroundColor: '#ffffff',
-    padding: 40,
-    borderRadius: 20,
-    marginBottom: 30,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 5,
-  },
-  desktopBudgetLabel: {
-    fontSize: 16,
-    color: '#666',
-    textTransform: 'uppercase',
-    marginBottom: 15,
-  },
-  desktopBudgetAmount: {
-    fontSize: 48,
-    color: PRIMARY_BLUE,
-    fontWeight: 'bold',
-    marginBottom: 30,
-  },
-  desktopMakeOfferButton: {
-    backgroundColor: PRIMARY_YELLOW,
-    paddingHorizontal: 40,
-    paddingVertical: 15,
-    borderRadius: 30,
-  },
-  desktopMakeOfferText: {
-    color: '#000',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  desktopMoreOptionsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 25,
-    paddingVertical: 18,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-  desktopMoreOptionsText: {
-    fontSize: 18,
-    color: '#000',
-  },
-  desktopMoreOptionsArrow: {
-    fontSize: 16,
-    color: '#666',
-  },
   desktopReportButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 30,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#666',
+    borderRadius: 25,
+    backgroundColor: '#fff',
   },
   desktopReportIcon: {
     fontSize: 18,
-    marginRight: 10,
+    marginRight: 8,
   },
   desktopReportText: {
     fontSize: 16,
     color: '#666',
   },
-  desktopDetailsSection: {
-    marginBottom: 30,
-  },
-  desktopDetailsTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 15,
-  },
-  desktopDetailsText: {
-    fontSize: 18,
-    color: '#333',
-    lineHeight: 28,
-  },
-  desktopImagesSection: {
-    marginBottom: 30,
-  },
-  desktopImageGrid: {
-    flexDirection: 'row',
-    gap: 15,
-  },
-  desktopImageContainer: {
-    flex: 1,
-    aspectRatio: 1,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#f0f0f0',
-  },
-  desktopImagePlaceholder: {
-    aspectRatio: 1,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  desktopImage: {
-    width: '100%',
-    height: '100%',
-  },
-  desktopLessButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 30,
-  },
-  desktopLessText: {
-    fontSize: 16,
-    color: PRIMARY_BLUE,
-    marginRight: 8,
-  },
-  desktopLessArrow: {
-    fontSize: 14,
-    color: PRIMARY_BLUE,
+  desktopBottomSpacing: {
+    height: 100, // Add some space at the bottom
   },
   desktopBottomTabs: {
     flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
-    backgroundColor: '#fff',
   },
   desktopTabButton: {
     flex: 1,
@@ -1311,44 +1157,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: PRIMARY_BLUE,
     fontWeight: '500',
-  },
-  // Floating CTA (mobile)
-  fabMobile: {
-    position: 'absolute',
-    right: 20,
-    bottom: 90,
-    backgroundColor: PRIMARY_YELLOW,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-    zIndex: 10,
-  },
-  fabText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000',
-  },
-
-  // Floating CTA (desktop)
-  fabDesktop: {
-    position: 'absolute',
-    right: 40,
-    bottom: 110,
-    backgroundColor: PRIMARY_YELLOW,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.15,
-    shadowRadius: 14,
-    elevation: 6,
-    zIndex: 10,
   },
 });
 

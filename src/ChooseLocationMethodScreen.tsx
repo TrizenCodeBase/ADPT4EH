@@ -192,16 +192,15 @@ const styles = StyleSheet.create({
   },
   manualLocationBtn: {
     width: '90%',
-    backgroundColor: '#fff',
+    backgroundColor: PRIMARY_YELLOW,
     borderRadius: 8,
     paddingVertical: 16,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#eee',
+    borderWidth: 0,
   },
   manualLocationText: {
-    color: DARK,
-    fontWeight: '500',
+    color: '#fff',
+    fontWeight: 'bold',
     fontSize: 16,
   },
 
@@ -287,16 +286,15 @@ const styles = StyleSheet.create({
   androidManualLocationBtn: {
     width: '100%',
     maxWidth: 300,
-    backgroundColor: '#fff',
+    backgroundColor: PRIMARY_YELLOW,
     borderRadius: 8,
     paddingVertical: 16,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: GRAY,
+    borderWidth: 0,
   },
   androidManualLocationText: {
-    color: DARK,
-    fontWeight: '500',
+    color: '#fff',
+    fontWeight: 'bold',
     fontSize: 16,
   },
 });

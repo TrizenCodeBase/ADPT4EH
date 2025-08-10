@@ -427,13 +427,13 @@ const PosterHomeScreen: React.FC = () => {
                             Math.floor((categories.length / 4) * (colIdx + 1))
                           )
                           .map((cat) => (
-                            <View 
+                            <TouchableOpacity 
                               key={cat} 
                               style={styles.desktopDropdownItem} 
-                              onTouchEnd={() => handleCategoryClick(cat)}
+                              onPress={() => handleCategoryClick(cat)}
                             >
                               <Text style={styles.desktopDropdownItemText}>{cat}</Text>
-                            </View>
+                            </TouchableOpacity>
                           ))}
                       </View>
                     ))}
@@ -1172,11 +1172,15 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 50 : 20,
     paddingHorizontal: 20,
     paddingBottom: 20,
+    position: 'relative',
+    zIndex: 2000,
   },
   desktopHeaderContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    position: 'relative',
+    zIndex: 2000,
   },
   desktopLogoSection: {
     flexDirection: 'row',
@@ -1229,39 +1233,43 @@ const styles = StyleSheet.create({
   desktopCategoriesDropdown: {
     position: 'absolute',
     top: '100%',
-    left: 0,
+    left: '50%',
+    marginLeft: -325, // half of minWidth 650 to visually center
     backgroundColor: '#fff',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#e5e7eb',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    zIndex: 10,
-    width: '100%',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
+    // zIndex: 100,
+    zIndex: 3000,
+    padding: 24,
+    minWidth: 650,
+    maxHeight: 350,
+    overflow: 'scroll',
   },
   desktopDropdownContent: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     justifyContent: 'space-between',
-    padding: 12,
+    padding: 0,
   },
   desktopDropdownColumn: {
-    width: '48%', // Two columns
-    marginBottom: 12,
+    width: '24%',
+    marginBottom: 0,
   },
   desktopDropdownItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    backgroundColor: '#f0f0f0',
+    paddingVertical: 4,
+    paddingHorizontal: 0,
+    borderRadius: 4,
   },
   desktopDropdownItemText: {
     fontSize: 14,
-    color: '#333',
-    fontWeight: '500',
+    color: '#374151',
+    fontWeight: '400',
   },
   desktopRightMenu: {
     flexDirection: 'row',

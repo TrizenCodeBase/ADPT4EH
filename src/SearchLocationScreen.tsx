@@ -255,8 +255,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: LIGHT_GRAY,
+    marginHorizontal: 16,
+    marginTop: 12,
+    backgroundColor: PRIMARY_YELLOW,
+    borderRadius: 12,
   },
   currentLocationIcon: {
     width: 24,
@@ -267,11 +269,12 @@ const styles = StyleSheet.create({
   },
   targetIcon: {
     fontSize: 20,
+    color: '#fff',
   },
   currentLocationText: {
     fontSize: 16,
-    color: PRIMARY_YELLOW,
-    fontWeight: '500',
+    color: '#fff',
+    fontWeight: '700',
   },
   resultsContainer: {
     flex: 1,
@@ -372,8 +375,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: LIGHT_GRAY,
+    paddingHorizontal: 16,
+    backgroundColor: PRIMARY_YELLOW,
+    borderRadius: 12,
+    marginBottom: 12,
   },
   androidCurrentLocationIcon: {
     width: 24,
@@ -384,8 +389,8 @@ const styles = StyleSheet.create({
   },
   androidCurrentLocationText: {
     fontSize: 16,
-    color: PRIMARY_YELLOW,
-    fontWeight: '500',
+    color: '#fff',
+    fontWeight: '700',
   },
   androidResultsContainer: {
     flex: 1,
