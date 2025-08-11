@@ -366,7 +366,7 @@ const PerformerHomeScreen = () => {
           </TouchableOpacity>
           <TouchableOpacity style={styles.mobileNavItem}>
             <Text style={styles.mobileNavIcon}>○</Text>
-            <Text style={styles.mobileNavLabel}>Chat</Text>
+            <Text style={styles.mobileNavLabel} onPress={() => navigation.navigate('Chat')}>Chat</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.mobileNavItem}>
             <Text style={styles.mobileNavIcon}>⚪</Text>
@@ -440,6 +440,12 @@ const PerformerHomeScreen = () => {
           
           {/* Right: Profile Icon */}
           <View style={styles.desktopRightMenu}>
+            <TouchableOpacity 
+              style={styles.desktopMenuLink}
+              onPress={() => navigation.navigate('Chat')}
+            >
+              <Text style={styles.desktopMenuLinkText}>Chat</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.desktopProfileButton}>
               <Text style={styles.desktopProfileIcon}>👤</Text>
             </TouchableOpacity>

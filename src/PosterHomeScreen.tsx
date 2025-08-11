@@ -371,7 +371,7 @@ const PosterHomeScreen: React.FC = () => {
           </TouchableOpacity>
           <TouchableOpacity style={styles.mobileNavItem}>
             <Text style={styles.mobileNavIcon}>○</Text>
-            <Text style={styles.mobileNavText}>Chat</Text>
+            <Text style={styles.mobileNavText} onPress={() => navigation.navigate('Chat')}>Chat</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.mobileNavItem}
@@ -451,6 +451,12 @@ const PosterHomeScreen: React.FC = () => {
           
           {/* Right: Profile Icon */}
           <View style={styles.desktopRightMenu}>
+            <TouchableOpacity 
+              style={styles.desktopMenuLink}
+              onPress={() => navigation.navigate('Chat')}
+            >
+              <Text style={styles.desktopMenuLinkText}>Chat</Text>
+            </TouchableOpacity>
             <TouchableOpacity 
               style={styles.desktopProfileButton}
               onPress={() => navigation.navigate('Profile')}
@@ -1244,7 +1250,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 16,
     elevation: 4,
-    // zIndex: 100,
     zIndex: 3000,
     padding: 24,
     minWidth: 650,
