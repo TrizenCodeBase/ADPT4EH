@@ -19,6 +19,17 @@ import {
   getDoc
 } from 'firebase/firestore';
 
+// Helper to bound any async by a timeout
+const withTimeout = async (promise, ms, onTimeoutReturn) => {
+  let timeoutId;
+  const timeout = new Promise(resolve => {
+    timeoutId = setTimeout(() => resolve(onTimeoutReturn), ms);
+  });
+  const result = await Promise.race([promise, timeout]);
+  clearTimeout(timeoutId);
+  return result;
+};
+
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw",
@@ -48,7 +59,7 @@ if (typeof window !== 'undefined') {
   try {
     analytics = getAnalytics(app);
   } catch (e) {
-    // noop - analytics not supported in this environment
+    // analytics not available
   }
 }
 export { analytics };
@@ -62,7 +73,6 @@ export const ensureUserProfile = async (uid, data) => {
     }, { merge: true });
     return { success: true };
   } catch (error) {
-    // If offline/unavailable, report but don't fail the auth flow
     return { success: false, code: error.code, error: error.message };
   }
 };
@@ -81,19 +91,20 @@ export const signUpWithEmail = async (email, password, userData) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-    
-    // Update user profile (displayName)
-    await updateProfile(user, { displayName: userData.name });
 
-    // Try writing profile, but tolerate offline
-    const profileResult = await ensureUserProfile(user.uid, {
+    // Update user profile (displayName) — non-blocking if it fails; but we await since it's in-memory
+    try { await updateProfile(user, { displayName: userData.name }); } catch {}
+
+    // Fire-and-forget profile write — DO NOT BLOCK UI
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    ensureUserProfile(user.uid, {
       name: userData.name,
       email: user.email,
       role: userData.role,
       location: userData.location,
     });
 
-    return { user, success: true, profileWriteOk: profileResult.success, profileWriteErrorCode: profileResult.code };
+    return { user, success: true };
   } catch (error) {
     return { error: error.message, code: error.code, success: false };
   }
@@ -105,12 +116,14 @@ export const signInWithEmail = async (email, password) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
 
-    // Best-effort ensure profile exists
-    await ensureUserProfile(uid, { email });
+    // Best-effort ensure profile exists in background
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    ensureUserProfile(uid, { email });
 
-    const userDoc = await getDoc(doc(db, 'users', uid));
-    const userData = userDoc.exists() ? userDoc.data() : null;
-    
+    // Best-effort read profile with a 5s timeout; proceed if unavailable
+    const userDoc = await withTimeout(getDoc(doc(db, 'users', uid)), 5000, { __timeout: true });
+    const userData = userDoc && !userDoc.__timeout && userDoc.exists ? (userDoc.exists() ? userDoc.data() : null) : null;
+
     return { 
       user: userCredential.user, 
       userData,
@@ -128,15 +141,18 @@ export const signInWithGoogle = async () => {
     const result = await signInWithPopup(auth, provider);
     const uid = result.user.uid;
 
-    await ensureUserProfile(uid, {
+    // Background ensure profile
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    ensureUserProfile(uid, {
       name: result.user.displayName,
       email: result.user.email,
       photoURL: result.user.photoURL,
       role: 'performer',
     });
 
-    const userDoc = await getDoc(doc(db, 'users', uid));
-    const userData = userDoc.exists() ? userDoc.data() : null;
+    // Try read with timeout
+    const userDoc = await withTimeout(getDoc(doc(db, 'users', uid)), 5000, { __timeout: true });
+    const userData = userDoc && !userDoc.__timeout && userDoc.exists ? (userDoc.exists() ? userDoc.data() : null) : null;
 
     return { user: result.user, userData, success: true };
   } catch (error) {
@@ -168,22 +184,16 @@ export const signInWithPhone = async (phoneNumber, recaptchaVerifier) => {
 export const verifyOTP = async (confirmationResult, verificationCode) => {
   try {
     const result = await confirmationResult.confirm(verificationCode);
-    
-    // Check if user exists in Firestore, if not create profile
-    const userDoc = await getDoc(doc(db, 'users', result.user.uid));
-    
-    if (!userDoc.exists()) {
-      // New user, save to Firestore
-      await setDoc(doc(db, 'users', result.user.uid), {
-        uid: result.user.uid,
-        phoneNumber: result.user.phoneNumber,
-        role: 'performer', // Default role
-        createdAt: new Date().toISOString(),
-      });
-    }
-    
-    const userData = userDoc.exists() ? userDoc.data() : null;
-    
+    const uid = result.user.uid;
+
+    // Non-blocking profile ensure
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    ensureUserProfile(uid, { phoneNumber: result.user.phoneNumber, role: 'performer' });
+
+    // Try to fetch profile with timeout
+    const userDoc = await withTimeout(getDoc(doc(db, 'users', uid)), 5000, { __timeout: true });
+    const userData = userDoc && !userDoc.__timeout && userDoc.exists ? (userDoc.exists() ? userDoc.data() : null) : null;
+
     return { 
       user: result.user, 
       userData,
@@ -198,12 +208,8 @@ export const verifyOTP = async (confirmationResult, verificationCode) => {
 export const setupRecaptcha = (containerId) => {
   return new RecaptchaVerifier(auth, containerId, {
     size: 'invisible',
-    callback: (response) => {
-      console.log('Recaptcha verified');
-    },
-    'expired-callback': () => {
-      console.log('Recaptcha expired');
-    }
+    callback: () => {},
+    'expired-callback': () => {}
   });
 };
 
