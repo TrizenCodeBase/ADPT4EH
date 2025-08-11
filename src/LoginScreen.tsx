@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform, Image, Dimensions } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
+import { signInWithEmail, signInWithGoogle, resetPassword } from './firebase';
 
 const PRIMARY_YELLOW = '#f9b233';
 const PRIMARY_BLUE = '#2563EB';
@@ -75,7 +76,7 @@ const LoginScreen = () => {
     }
   }, []);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     console.log('Login attempt - Platform:', Platform.OS, 'isMobileView:', isMobileView);
     console.log('Email:', email, 'Password length:', password.length);
     
@@ -92,20 +93,110 @@ const LoginScreen = () => {
     setLoading(true);
     console.log('Starting login process...');
     
-    setTimeout(() => {
-      setLoading(false);
-      console.log('Login completed, navigating to PosterHome...');
-      
-      if (Platform.OS === 'web') {
-        alert('Logged in successfully!');
-        console.log('Calling navigation.navigate("PosterHome")');
-        navigation.navigate('PosterHome');
+    try {
+      const result = await signInWithEmail(email, password);
+
+      if (result.success) {
+        // Navigate based on user role
+        const userRole = result.userData?.role || 'performer';
+        const targetScreen = userRole === 'performer' ? 'PerformerHome' : 'PosterHome';
+        
+        console.log('Login successful, navigating to:', targetScreen);
+        
+        if (Platform.OS === 'web') {
+          alert('Logged in successfully!');
+        }
+        navigation.navigate(targetScreen);
       } else {
-        Alert.alert('Success', 'Logged in!', [
-          { text: 'OK', onPress: () => navigation.navigate('PosterHome') }
-        ]);
+        const errorMessage = result.error || 'Failed to log in';
+        if (Platform.OS === 'web') {
+          alert(errorMessage);
+        } else {
+          Alert.alert('Error', errorMessage);
+        }
       }
-    }, 1000);
+    } catch (error) {
+      console.error('Login error:', error);
+      const errorMessage = 'Something went wrong. Please try again.';
+      if (Platform.OS === 'web') {
+        alert(errorMessage);
+      } else {
+        Alert.alert('Error', errorMessage);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+
+    try {
+      const result = await signInWithGoogle();
+
+      if (result.success) {
+        // Navigate based on user role
+        const userRole = result.userData?.role || 'performer';
+        const targetScreen = userRole === 'performer' ? 'PerformerHome' : 'PosterHome';
+        
+        if (Platform.OS === 'web') {
+          alert('Logged in with Google successfully!');
+        }
+        navigation.navigate(targetScreen);
+      } else {
+        const errorMessage = result.error || 'Failed to log in with Google';
+        if (Platform.OS === 'web') {
+          alert(errorMessage);
+        } else {
+          Alert.alert('Error', errorMessage);
+        }
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+      const errorMessage = 'Something went wrong. Please try again.';
+      if (Platform.OS === 'web') {
+        alert(errorMessage);
+      } else {
+        Alert.alert('Error', errorMessage);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showAlert = (title: string, message: string) => {
+    if (Platform.OS === 'web') {
+      // eslint-disable-next-line no-alert
+      window.alert(`${title}\n\n${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      showAlert('Enter email', 'Please enter your email address to reset your password.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await resetPassword(email);
+      if (res.success) {
+        showAlert('Password reset sent', 'We have emailed you a password reset link. Check your inbox.');
+      } else {
+        const msg =
+          res.code === 'auth/invalid-email'
+            ? 'The email address is not valid.'
+            : res.code === 'auth/user-not-found'
+            ? 'No user found with this email.'
+            : 'Failed to send reset email. Please try again.';
+        showAlert('Reset failed', msg);
+      }
+    } catch (e) {
+      showAlert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Frameless layout for mobile (Android, iOS, and mobile web)
@@ -160,7 +251,7 @@ const LoginScreen = () => {
         </View>
 
         {/* Forgot Password */}
-        <TouchableOpacity style={styles.androidForgotContainer}>
+        <TouchableOpacity style={styles.androidForgotContainer} onPress={handleForgotPassword}>
           <Text style={styles.androidForgotText}>Forgot Password?</Text>
         </TouchableOpacity>
 
@@ -195,7 +286,7 @@ const LoginScreen = () => {
             <TouchableOpacity style={styles.androidSocialButton}>
               <AppleIcon />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.androidSocialButton}>
+            <TouchableOpacity style={styles.androidSocialButton} onPress={handleGoogleLogin}>
               <GoogleIcon />
             </TouchableOpacity>
             <TouchableOpacity style={styles.androidSocialButton}>
@@ -243,7 +334,7 @@ const LoginScreen = () => {
             <EyeIcon visible={showPassword} />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.forgotContainer} onPress={() => {}}>
+        <TouchableOpacity style={styles.forgotContainer} onPress={handleForgotPassword}>
           <Text style={styles.forgotText}>Forgot Password?</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
@@ -259,7 +350,7 @@ const LoginScreen = () => {
           <TouchableOpacity style={styles.socialIconButton}>
             <AppleIcon />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.socialIconButton}>
+          <TouchableOpacity style={styles.socialIconButton} onPress={handleGoogleLogin}>
             <GoogleIcon />
           </TouchableOpacity>
           <TouchableOpacity style={styles.socialIconButton}>

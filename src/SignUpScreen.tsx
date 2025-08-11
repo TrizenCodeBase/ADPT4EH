@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform, ScrollView, Image, Dimensions } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
+import { signUpWithEmail, signInWithGoogle } from './firebase';
 
 const PRIMARY_YELLOW = '#f9b233';
 const PRIMARY_BLUE = '#2563EB';
@@ -55,6 +56,15 @@ const SignUpScreen = () => {
   const [loading, setLoading] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
 
+  const showAlert = (title: string, message: string) => {
+    if (Platform.OS === 'web') {
+      // eslint-disable-next-line no-alert
+      window.alert(`${title}\n\n${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
+
   // Check if we're on mobile web view
   useEffect(() => {
     const checkScreenSize = () => {
@@ -73,21 +83,86 @@ const SignUpScreen = () => {
     }
   }, []);
 
-  const handleSignUp = () => {
+  const mapFirebaseSignUpError = (code?: string) => {
+    switch (code) {
+      case 'auth/email-already-in-use':
+        return 'This email is already registered. Try logging in instead.';
+      case 'auth/invalid-email':
+        return 'The email address is not valid.';
+      case 'auth/operation-not-allowed':
+        return 'Email/password accounts are not enabled for this project.';
+      case 'auth/weak-password':
+        return 'Password is too weak. Please use at least 6 characters.';
+      case 'auth/network-request-failed':
+        return 'Network error. Please check your internet connection and try again.';
+      case 'auth/invalid-api-key':
+        return 'Invalid API key. Please verify your Firebase configuration.';
+      case 'auth/unauthorized-domain':
+      case 'auth/invalid-origin':
+        return 'This domain is not authorized in Firebase Authentication. Add localhost to Authorized Domains.';
+      default:
+        return 'Failed to create account. Please try again.';
+    }
+  };
+
+  const handleSignUp = async () => {
     if (!fullName || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill all fields.');
+      showAlert('Missing info', 'Please fill all fields.');
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match.');
+      showAlert('Password mismatch', 'Passwords do not match.');
       return;
     }
+    if (password.length < 6) {
+      showAlert('Weak password', 'Password must be at least 6 characters.');
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      const result = await signUpWithEmail(email, password, {
+        name: fullName,
+        phone: phone,
+        role: 'performer', // Default role
+        location: 'Not specified'
+      });
+
+      if (result.success) {
+        showAlert('Account Created', 'Your account has been created successfully!');
+        navigation.navigate('PerformerHome');
+      } else {
+        const friendly = mapFirebaseSignUpError(result.code);
+        showAlert('Sign up failed', friendly);
+        console.warn('Signup failed:', result.code, result.error);
+      }
+    } catch (error) {
+      console.error('Signup exception:', error);
+      showAlert('Error', 'Something went wrong. Please try again.');
+    } finally {
       setLoading(false);
-      // Navigate directly after sign up
-      navigation.navigate('OTPVerification', { phone });
-    }, 1000);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    setLoading(true);
+
+    try {
+      const result = await signInWithGoogle();
+
+      if (result.success) {
+        showAlert('Account Created', 'Signed up with Google successfully!');
+        navigation.navigate('PerformerHome');
+      } else {
+        showAlert('Google Sign up failed', result.error || 'Please try again.');
+      }
+    } catch (error) {
+      console.error('Google signup exception:', error);
+      showAlert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Frameless layout for mobile (Android, iOS, and mobile web)
@@ -220,7 +295,7 @@ const SignUpScreen = () => {
               <TouchableOpacity style={styles.androidSocialButton}>
                 <AppleIcon />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.androidSocialButton}>
+              <TouchableOpacity style={styles.androidSocialButton} onPress={handleGoogleSignUp}>
                 <GoogleIcon />
               </TouchableOpacity>
               <TouchableOpacity style={styles.androidSocialButton}>
@@ -336,7 +411,7 @@ const SignUpScreen = () => {
           <TouchableOpacity style={styles.socialIconButton}>
             <AppleIcon />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.socialIconButton}>
+          <TouchableOpacity style={styles.socialIconButton} onPress={handleGoogleSignUp}>
             <GoogleIcon />
           </TouchableOpacity>
           <TouchableOpacity style={styles.socialIconButton}>

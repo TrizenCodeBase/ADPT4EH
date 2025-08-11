@@ -1,24 +1,37 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Platform, Dimensions, Alert } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
+import { setupRecaptcha, signInWithPhone, verifyOTP } from './firebase';
 
 const PRIMARY_YELLOW = '#f9b233';
 const DARK = '#222';
 const GRAY = '#888';
 const LIGHT_BG = '#f8fafc';
 
+// Keep a module-scoped confirmationResult for web flow
+let webConfirmation: any = null;
+
 const maskPhone = (phone: string) => {
   if (!phone) return '';
-  return phone.replace(/(\d{2})(\d{2})(\d{4})(\d{2})/, '+$1 $2******$4');
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length < 6) return `+${digits}`;
+  return `+${digits.slice(0, 2)} ${digits.slice(2, 4)}******${digits.slice(-2)}`;
 };
+
+const OTP_LENGTH = 6;
 
 const OTPVerificationScreen: React.FC = () => {
   const navigation = useNavigation();
-  const phone = navigation.params?.phone || '';
-  const [otp, setOtp] = useState(['', '', '', '']);
+  const initialPhone = navigation.params?.phone || '';
+  const [currentPhone, setCurrentPhone] = useState<string>(initialPhone);
+  const [isEditingPhone, setIsEditingPhone] = useState<boolean>(false);
+  const [phoneInput, setPhoneInput] = useState<string>(initialPhone);
+
+  const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [timer, setTimer] = useState(30);
   const [isMobileView, setIsMobileView] = useState(false);
-  const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+  const [sending, setSending] = useState(false);
+  const inputRefs = Array.from({ length: OTP_LENGTH }, () => useRef<any>(null));
 
   // Check if we're on mobile web view
   useEffect(() => {
@@ -38,6 +51,59 @@ const OTPVerificationScreen: React.FC = () => {
     }
   }, []);
 
+  const sanitizedDigits = (raw: string) => raw.replace(/\D/g, '');
+
+  const sendOtpInternal = async (digitsOnlyPhone: string) => {
+    try {
+      setSending(true);
+      if (Platform.OS === 'web') {
+        const containerId = 'recaptcha-container';
+        if (!document.getElementById(containerId)) {
+          const div = document.createElement('div');
+          div.id = containerId;
+          div.style.display = 'none';
+          document.body.appendChild(div);
+        }
+        const verifier = setupRecaptcha('recaptcha-container');
+        const res = await signInWithPhone(`+${digitsOnlyPhone}`, verifier);
+        if (res.success) {
+          webConfirmation = res.confirmationResult;
+          setOtp(Array(OTP_LENGTH).fill(''));
+          setTimer(30);
+          focusIndex(0);
+        } else {
+          Alert.alert('OTP Error', res.error || 'Failed to send verification code.');
+        }
+      } else {
+        const verifier: any = null;
+        const res = await signInWithPhone(`+${digitsOnlyPhone}`, verifier);
+        if (res.success) {
+          webConfirmation = res.confirmationResult;
+          setOtp(Array(OTP_LENGTH).fill(''));
+          setTimer(30);
+          focusIndex(0);
+        } else {
+          Alert.alert('OTP Error', res.error || 'Failed to send verification code.');
+        }
+      }
+    } catch (e) {
+      Alert.alert('OTP Error', 'Could not send verification code.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Send OTP on mount when phone exists
+  useEffect(() => {
+    const sendOtp = async () => {
+      const digits = sanitizedDigits(currentPhone);
+      if (!digits) return;
+      await sendOtpInternal(digits);
+    };
+    sendOtp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPhone]);
+
   useEffect(() => {
     if (timer > 0) {
       const interval = setInterval(() => setTimer(t => t - 1), 1000);
@@ -45,36 +111,81 @@ const OTPVerificationScreen: React.FC = () => {
     }
   }, [timer]);
 
+  const focusIndex = (i: number) => {
+    if (i >= 0 && i < OTP_LENGTH) {
+      inputRefs[i].current?.focus?.();
+    }
+  };
+
   const handleChange = (text: string, idx: number) => {
-    if (/^\d?$/.test(text)) {
-      const newOtp = [...otp];
-      newOtp[idx] = text;
-      setOtp(newOtp);
-      if (text && idx < 3) {
-        // @ts-ignore
-        inputRefs[idx + 1].current.focus();
+    const digits = (text || '').replace(/\D/g, '');
+    if (digits.length <= 1) {
+      const next = [...otp];
+      next[idx] = digits;
+      setOtp(next);
+      if (digits && idx < OTP_LENGTH - 1) focusIndex(idx + 1);
+      return;
+    }
+    const next = [...otp];
+    let i = idx;
+    for (const d of digits.split('')) {
+      if (i >= OTP_LENGTH) break;
+      next[i] = d;
+      i += 1;
+    }
+    setOtp(next);
+    focusIndex(Math.min(i, OTP_LENGTH - 1));
+  };
+
+  const handleKeyPress = (e: any, idx: number) => {
+    if (e?.nativeEvent?.key === 'Backspace') {
+      if (!otp[idx] && idx > 0) {
+        const next = [...otp];
+        next[idx - 1] = '';
+        setOtp(next);
+        focusIndex(idx - 1);
       }
     }
   };
 
-  const handleResend = () => {
-    if (timer === 0) setTimer(30);
+  const handleResend = async () => {
+    if (timer > 0 || sending) return;
+    const digits = sanitizedDigits(currentPhone);
+    if (!digits) return;
+    await sendOtpInternal(digits);
   };
 
-  const handleContinue = () => {
-    // Add OTP verification logic here
-    if (otp.join('').length === 4) {
-      console.log('=== OTP VERIFICATION DEBUG ===');
-      console.log('OTP entered:', otp.join(''));
-      console.log('Navigation object:', navigation);
-      console.log('Platform:', Platform.OS);
-      
-      // Simplified navigation for Android
-      console.log('Calling navigation.navigate("ChooseLocationMethod")');
-      navigation.navigate('ChooseLocationMethod');
-    } else {
-      console.log('OTP not complete, length:', otp.join('').length);
+  const handleContinue = async () => {
+    const code = otp.join('');
+    if (code.length !== OTP_LENGTH) {
+      Alert.alert('Invalid code', `Please enter the ${OTP_LENGTH}-digit verification code.`);
+      return;
     }
+    try {
+      if (!webConfirmation) {
+        Alert.alert('OTP Error', 'No verification session found. Please resend the code.');
+        return;
+      }
+      const res = await verifyOTP(webConfirmation, code);
+      if (res.success) {
+        Alert.alert('Verified', 'Phone number verified successfully.');
+        navigation.navigate('ChooseLocationMethod');
+      } else {
+        Alert.alert('Verification failed', res.error || 'The code is invalid or expired.');
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Could not verify the code.');
+    }
+  };
+
+  const saveNewPhone = async () => {
+    const digits = sanitizedDigits(phoneInput);
+    if (digits.length < 8 || digits.length > 15) {
+      Alert.alert('Invalid phone', 'Please enter a valid phone number with country code digits (8-15).');
+      return;
+    }
+    setCurrentPhone(digits);
+    setIsEditingPhone(false);
   };
 
   // Frameless layout for mobile (Android, iOS, and mobile web)
@@ -91,7 +202,30 @@ const OTPVerificationScreen: React.FC = () => {
         <View style={styles.androidTitleSection}>
           <Text style={styles.androidHeading}>Verification Code</Text>
           <Text style={styles.androidSubtext}>We have sent a verification code to</Text>
-          <Text style={styles.androidPhoneText}>{maskPhone(phone)} <Text style={styles.androidEditText}>Edit</Text></Text>
+          {!isEditingPhone ? (
+            <Text style={styles.androidPhoneText}>
+              {maskPhone(currentPhone)}{' '}
+              <Text style={styles.androidEditText} onPress={() => { setPhoneInput(currentPhone); setIsEditingPhone(true); }}>Edit</Text>
+            </Text>
+          ) : (
+            <View style={{ width: '100%', maxWidth: 400 }}>
+              <TextInput
+                style={styles.androidPhoneInput}
+                placeholder="Enter phone with country code (digits only)"
+                keyboardType="phone-pad"
+                value={phoneInput}
+                onChangeText={setPhoneInput}
+              />
+              <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12 }}>
+                <TouchableOpacity style={[styles.smallButton, { backgroundColor: PRIMARY_YELLOW }]} onPress={saveNewPhone} disabled={sending}>
+                  <Text style={styles.smallButtonText}>Save & Resend</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.smallButton, { backgroundColor: '#e5e7eb' }]} onPress={() => setIsEditingPhone(false)} disabled={sending}>
+                  <Text style={[styles.smallButtonText, { color: '#111' }]}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </View>
 
         {/* OTP Input */}
@@ -104,6 +238,7 @@ const OTPVerificationScreen: React.FC = () => {
                 style={styles.androidOtpInput}
                 value={digit}
                 onChangeText={text => handleChange(text, idx)}
+                onKeyPress={(e) => handleKeyPress(e, idx)}
                 keyboardType="number-pad"
                 maxLength={1}
                 autoFocus={idx === 0}
@@ -122,9 +257,9 @@ const OTPVerificationScreen: React.FC = () => {
 
         {/* Continue Button */}
         <TouchableOpacity 
-          style={[styles.androidContinueButton, { opacity: otp.join('').length === 4 ? 1 : 0.6 }]}
+          style={[styles.androidContinueButton, { opacity: otp.join('').length === OTP_LENGTH ? 1 : 0.6 }]}
           onPress={handleContinue} 
-          disabled={otp.join('').length !== 4}
+          disabled={otp.join('').length !== OTP_LENGTH}
         >
           <Text style={styles.androidContinueButtonText}>Continue</Text>
         </TouchableOpacity>
@@ -139,7 +274,30 @@ const OTPVerificationScreen: React.FC = () => {
         <View style={styles.card}>
           <Text style={styles.heading}>Verification Code</Text>
           <Text style={styles.subtext}>We have sent a verification code to</Text>
-          <Text style={styles.phoneText}>{maskPhone(phone)} <Text style={styles.editText}>Edit</Text></Text>
+          {!isEditingPhone ? (
+            <Text style={styles.phoneText}>
+              {maskPhone(currentPhone)}{' '}
+              <Text style={styles.editText} onPress={() => { setPhoneInput(currentPhone); setIsEditingPhone(true); }}>Edit</Text>
+            </Text>
+          ) : (
+            <View style={{ width: '100%' }}>
+              <TextInput
+                style={styles.phoneInput}
+                placeholder="Enter phone with country code (digits only)"
+                keyboardType="phone-pad"
+                value={phoneInput}
+                onChangeText={setPhoneInput}
+              />
+              <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12 }}>
+                <TouchableOpacity style={[styles.smallButton, { backgroundColor: PRIMARY_YELLOW }]} onPress={saveNewPhone} disabled={sending}>
+                  <Text style={styles.smallButtonText}>Save & Resend</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.smallButton, { backgroundColor: '#e5e7eb' }]} onPress={() => setIsEditingPhone(false)} disabled={sending}>
+                  <Text style={[styles.smallButtonText, { color: '#111' }]}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
           <View style={styles.otpRow}>
             {otp.map((digit, idx) => (
               <TextInput
@@ -148,6 +306,7 @@ const OTPVerificationScreen: React.FC = () => {
                 style={styles.otpInput}
                 value={digit}
                 onChangeText={text => handleChange(text, idx)}
+                onKeyPress={(e) => handleKeyPress(e, idx)}
                 keyboardType="number-pad"
                 maxLength={1}
                 autoFocus={idx === 0}
@@ -161,7 +320,7 @@ const OTPVerificationScreen: React.FC = () => {
               <Text style={[styles.resendLink, timer > 0 && { color: GRAY }]}>Resend SMS in {timer.toString().padStart(2, '0')}s</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.continueButton} onPress={handleContinue} disabled={otp.join('').length !== 4}>
+          <TouchableOpacity style={[styles.continueButton, { opacity: otp.join('').length === OTP_LENGTH ? 1 : 0.6 }]} onPress={handleContinue} disabled={otp.join('').length !== OTP_LENGTH}>
             <Text style={styles.continueButtonText}>Continue</Text>
           </TouchableOpacity>
         </View>
@@ -179,22 +338,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    zIndex: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
   card: {
     width: '100%',
@@ -232,6 +375,16 @@ const styles = StyleSheet.create({
     color: PRIMARY_YELLOW,
     fontWeight: '600',
     fontSize: 15,
+  },
+  phoneInput: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: GRAY,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    fontSize: 16,
+    backgroundColor: LIGHT_BG,
   },
   otpRow: {
     flexDirection: 'row',
@@ -282,7 +435,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-  // New styles for Android-specific layout
+  // Android-specific
   androidContainer: {
     flex: 1,
     backgroundColor: '#fff',
@@ -331,6 +484,16 @@ const styles = StyleSheet.create({
     color: PRIMARY_YELLOW,
     fontWeight: '600',
     fontSize: 15,
+  },
+  androidPhoneInput: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: GRAY,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    fontSize: 16,
+    backgroundColor: LIGHT_BG,
   },
   androidOtpContainer: {
     width: '100%',
@@ -381,5 +544,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  smallButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  smallButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 }); 
