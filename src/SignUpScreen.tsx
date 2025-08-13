@@ -125,13 +125,13 @@ const SignUpScreen = () => {
       const result = await signUpWithEmail(email, password, {
         name: fullName,
         phone: phone,
-        role: 'performer', // Default role
+        role: 'performer',
         location: 'Not specified'
       });
 
       if (result.success) {
-        showAlert('Account Created', 'Your account has been created successfully!');
-        navigation.navigate('PerformerHome');
+        // After signup, go to OTP verification with phone prefilled
+        navigation.navigate('OTPVerification', { phone });
       } else {
         const friendly = mapFirebaseSignUpError(result.code);
         showAlert('Sign up failed', friendly);

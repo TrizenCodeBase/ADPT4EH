@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions } from 'react-native';
+import { api } from './api';
 import { useNavigation } from './SimpleNavigation';
 
 const PRIMARY_YELLOW = '#f9b233';
@@ -43,11 +44,18 @@ const LocationConfirmationScreen = () => {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const persistAndGo = async () => {
+      try {
+        const location = {
+          address: fullAddress || areaName,
+        } as any;
+        await api.upsertProfile({ name: 'User', roles: ['both'], location });
+      } catch {}
       if (navigation && navigation.navigate) {
         navigation.navigate('RoleSelection');
       }
-    }, 2500);
+    };
+    const timer = setTimeout(persistAndGo, 1000);
     return () => clearTimeout(timer);
   }, [navigation]);
 

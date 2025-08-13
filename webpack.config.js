@@ -11,6 +11,7 @@ module.exports = {
   resolve: {
     alias: {
       'react-native$': 'react-native-web',
+      '@react-native-firebase/auth': path.resolve(__dirname, 'src/shims/rnfbauth.web.ts'),
     },
     extensions: ['.web.js', '.js', '.ts', '.tsx'],
   },

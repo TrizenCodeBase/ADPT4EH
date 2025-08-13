@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Platform, Dimensions, Alert } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
-import { setupRecaptcha, signInWithPhone, verifyOTP } from './firebase';
+import { setupRecaptcha, signInWithPhone, verifyOTP, auth } from './firebase';
+import { sendOTP, confirmOTP } from './phoneAuth';
+import { api } from './api';
 
 const PRIMARY_YELLOW = '#f9b233';
 const DARK = '#222';
@@ -58,36 +60,36 @@ const OTPVerificationScreen: React.FC = () => {
       setSending(true);
       if (Platform.OS === 'web') {
         const containerId = 'recaptcha-container';
-        if (!document.getElementById(containerId)) {
-          const div = document.createElement('div');
-          div.id = containerId;
-          div.style.display = 'none';
-          document.body.appendChild(div);
+        // Container should already exist in HTML, but ensure it's visible
+        const container = document.getElementById(containerId);
+        if (container) {
+          container.style.display = 'block';
         }
-        const verifier = setupRecaptcha('recaptcha-container');
-        const res = await signInWithPhone(`+${digitsOnlyPhone}`, verifier);
+        const res = await sendOTP(`+${digitsOnlyPhone}`);
         if (res.success) {
-          webConfirmation = res.confirmationResult;
+          webConfirmation = res.confirmation;
           setOtp(Array(OTP_LENGTH).fill(''));
           setTimer(30);
           focusIndex(0);
         } else {
-          Alert.alert('OTP Error', res.error || 'Failed to send verification code.');
+          const msg = res.code ? `${res.code}: ${res.error}` : (res.error || 'Failed to send verification code.');
+          Alert.alert('OTP Error', msg);
         }
       } else {
-        const verifier: any = null;
-        const res = await signInWithPhone(`+${digitsOnlyPhone}`, verifier);
+        const res = await sendOTP(`+${digitsOnlyPhone}`);
         if (res.success) {
-          webConfirmation = res.confirmationResult;
+          webConfirmation = res.confirmation;
           setOtp(Array(OTP_LENGTH).fill(''));
           setTimer(30);
           focusIndex(0);
         } else {
-          Alert.alert('OTP Error', res.error || 'Failed to send verification code.');
+          const msg = res.code ? `${res.code}: ${res.error}` : (res.error || 'Failed to send verification code.');
+          Alert.alert('OTP Error', msg);
         }
       }
     } catch (e) {
-      Alert.alert('OTP Error', 'Could not send verification code.');
+      const msg = (e as any)?.message || 'Could not send verification code.';
+      Alert.alert('OTP Error', msg);
     } finally {
       setSending(false);
     }
@@ -166,8 +168,14 @@ const OTPVerificationScreen: React.FC = () => {
         Alert.alert('OTP Error', 'No verification session found. Please resend the code.');
         return;
       }
-      const res = await verifyOTP(webConfirmation, code);
+      const res = await confirmOTP(webConfirmation, code);
       if (res.success) {
+        try {
+          const user = auth.currentUser;
+          const name = user?.displayName || 'User';
+          // Ensure minimal profile on backend (name and roles required)
+          await api.upsertProfile({ name, roles: ['both'], phone: `+${sanitizedDigits(currentPhone)}` });
+        } catch {}
         Alert.alert('Verified', 'Phone number verified successfully.');
         navigation.navigate('ChooseLocationMethod');
       } else {

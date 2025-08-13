@@ -205,11 +205,20 @@ export const verifyOTP = async (confirmationResult, verificationCode) => {
 };
 
 // Setup Recaptcha for Phone Auth
-export const setupRecaptcha = (containerId) => {
+export const setupRecaptcha = (containerId, options = {}) => {
+  console.log('Creating RecaptchaVerifier for container:', containerId);
   return new RecaptchaVerifier(auth, containerId, {
     size: 'invisible',
-    callback: () => {},
-    'expired-callback': () => {}
+    callback: (response) => {
+      console.log('reCAPTCHA solved:', response);
+    },
+    'expired-callback': () => {
+      console.log('reCAPTCHA expired');
+    },
+    'error-callback': (error) => {
+      console.error('reCAPTCHA error:', error);
+    },
+    ...options,
   });
 };
 

@@ -14,6 +14,7 @@ import LocationConfirmationScreen from './LocationConfirmationScreen';
 import RoleSelectionScreen from './RoleSelectionScreen';
 import PerformerHomeScreen from './PerformerHomeScreen';
 import PosterHomeScreen from './PosterHomeScreen';
+import SearchLocationScreen from './SearchLocationScreen';
 
 const Stack = createStackNavigator();
 
@@ -49,6 +50,7 @@ const Navigation = () => {
         <Stack.Screen name="ChooseLocationMethod" component={ChooseLocationMethodScreen} />
         <Stack.Screen name="LocationInput" component={LocationInputScreen} />
         <Stack.Screen name="LocationConfirmation" component={LocationConfirmationScreen} />
+        <Stack.Screen name="SearchLocation" component={SearchLocationScreen} />
         <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} />
         <Stack.Screen name="PerformerHome" component={PerformerHomeScreen} />
         <Stack.Screen name="PosterHome" component={PosterHomeScreen} />

@@ -1,3 +1,4 @@
+import { api } from './api';
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Dimensions } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
@@ -98,16 +99,11 @@ const RoleSelectionScreen = () => {
           <TouchableOpacity
             style={[styles.androidCompleteBtn, !canComplete && { opacity: 0.5 }]}
             disabled={!canComplete}
-            onPress={() => {
-              console.log('RoleSelectionScreen - Complete button pressed');
-              console.log('RoleSelectionScreen - goal:', goal);
-              if (goal === 'earn' && navigation && navigation.navigate) {
-                console.log('RoleSelectionScreen - Navigating to PerformerHome');
-                navigation.navigate('PerformerHome');
-              } else if (goal === 'get' && navigation && navigation.navigate) {
-                console.log('RoleSelectionScreen - Navigating to PosterHome');
-                navigation.navigate('PosterHome');
-              }
+            onPress={async () => {
+              const roles = goal === 'earn' ? ['tasker'] : ['poster'];
+              try { await api.upsertProfile({ name: 'User', roles }); } catch {}
+              if (goal === 'earn' && navigation && navigation.navigate) navigation.navigate('PerformerHome');
+              else if (goal === 'get' && navigation && navigation.navigate) navigation.navigate('PosterHome');
             }}
           >
             <Text style={styles.androidCompleteText}>Complete</Text>
@@ -174,16 +170,11 @@ const RoleSelectionScreen = () => {
         <TouchableOpacity
           style={[styles.completeBtn, !canComplete && { opacity: 0.5 }]}
           disabled={!canComplete}
-          onPress={() => {
-            console.log('RoleSelectionScreen - Complete button pressed');
-            console.log('RoleSelectionScreen - goal:', goal);
-            if (goal === 'earn' && navigation && navigation.navigate) {
-              console.log('RoleSelectionScreen - Navigating to PerformerHome');
-              navigation.navigate('PerformerHome');
-            } else if (goal === 'get' && navigation && navigation.navigate) {
-              console.log('RoleSelectionScreen - Navigating to PosterHome');
-              navigation.navigate('PosterHome');
-            }
+          onPress={async () => {
+            const roles = goal === 'earn' ? ['tasker'] : ['poster'];
+            try { await api.upsertProfile({ name: 'User', roles }); } catch {}
+            if (goal === 'earn' && navigation && navigation.navigate) navigation.navigate('PerformerHome');
+            else if (goal === 'get' && navigation && navigation.navigate) navigation.navigate('PosterHome');
           }}
         >
           <Text style={styles.completeText}>Complete</Text>

@@ -69,14 +69,9 @@ const styles = StyleSheet.create({
     width: '85%',
     alignItems: 'center',
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    // React Native Web deprecates shadow*; fall back to elevation and border for web
     elevation: 3,
+    borderWidth: 0,
   },
   signInButtonText: {
     color: '#fff',
@@ -92,13 +87,6 @@ const styles = StyleSheet.create({
     width: '85%',
     alignItems: 'center',
     backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
     elevation: 3,
   },
   createAccountButtonText: {
