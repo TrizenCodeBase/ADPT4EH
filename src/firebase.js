@@ -32,13 +32,13 @@ const withTimeout = async (promise, ms, onTimeoutReturn) => {
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw",
-  authDomain: "extrahand-app.firebaseapp.com",
-  projectId: "extrahand-app",
-  storageBucket: "extrahand-app.appspot.com",
-  messagingSenderId: "961487777082",
-  appId: "1:961487777082:web:dd95fe5a7658b0e3b1f403",
-  measurementId: "G-GXB3LSMR5B"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
@@ -173,9 +173,21 @@ export const signOutUser = async () => {
 // Phone Number Sign In (OTP)
 export const signInWithPhone = async (phoneNumber, recaptchaVerifier) => {
   try {
+    console.log('🔍 Attempting phone auth with:', {
+      phoneNumber,
+      projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+      apiKey: process.env.REACT_APP_FIREBASE_API_KEY?.substring(0, 10) + '...'
+    });
+    
     const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+    console.log('✅ Phone auth successful');
     return { confirmationResult, success: true };
   } catch (error) {
+    console.error('❌ Phone auth failed:', {
+      code: error.code,
+      message: error.message,
+      stack: error.stack?.substring(0, 200)
+    });
     return { error: error.message, code: error.code, success: false };
   }
 };
@@ -207,19 +219,33 @@ export const verifyOTP = async (confirmationResult, verificationCode) => {
 // Setup Recaptcha for Phone Auth
 export const setupRecaptcha = (containerId, options = {}) => {
   console.log('Creating RecaptchaVerifier for container:', containerId);
-  return new RecaptchaVerifier(auth, containerId, {
-    size: 'invisible',
-    callback: (response) => {
-      console.log('reCAPTCHA solved:', response);
-    },
-    'expired-callback': () => {
-      console.log('reCAPTCHA expired');
-    },
-    'error-callback': (error) => {
-      console.error('reCAPTCHA error:', error);
-    },
-    ...options,
+  console.log('Firebase config:', {
+    authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+    appId: process.env.REACT_APP_FIREBASE_APP_ID,
   });
+  
+  try {
+    const verifier = new RecaptchaVerifier(auth, containerId, {
+      size: options.size || 'invisible',
+      callback: (response) => {
+        console.log('✅ reCAPTCHA solved:', response);
+      },
+      'expired-callback': () => {
+        console.log('⚠️ reCAPTCHA expired');
+      },
+      'error-callback': (error) => {
+        console.error('❌ reCAPTCHA error:', error);
+      },
+      ...options,
+    });
+    
+    console.log('✅ RecaptchaVerifier created successfully');
+    return verifier;
+  } catch (error) {
+    console.error('❌ Failed to create RecaptchaVerifier:', error);
+    throw error;
+  }
 };
 
 export default app;

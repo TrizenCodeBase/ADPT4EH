@@ -26,13 +26,14 @@ const Header = ({ onNavigate }) => {
   const [activeItem, setActiveItem] = useState(null);
   const [showCategories, setShowCategories] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [mobileSearchQuery, setMobileSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!showCategories) return;
-    function handleClick(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setShowCategories(false);
       }
     }
@@ -41,8 +42,8 @@ const Header = ({ onNavigate }) => {
   }, [showCategories]);
 
   useEffect(() => {
-    function handleClick(e) {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
+    function handleClick(e: MouseEvent) {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
         setShowMobileMenu(false);
       }
     }
@@ -131,10 +132,13 @@ const Header = ({ onNavigate }) => {
           item.label === "Browse Tasks" ? (
             <div key={index} style={{ position: "relative", display: 'flex', alignItems: 'center', height: 40 }} ref={dropdownRef}>
               <button
-                onClick={() => setShowCategories((prev) => !prev)}
+                onClick={() => {
+                  console.log('Browse Tasks clicked, current state:', showCategories);
+                  setShowCategories((prev) => !prev);
+                }}
                 style={{
                   position: 'relative',
-                  background: item.type === 'button' ? '#ffcc30' : 'transparent',
+                  background: item.type === 'button' ? '#ffcc30' : (showCategories ? '#f3f4f6' : 'transparent'),
                   color: item.type === 'button' ? '#111827' : (activeItem === item.label ? '#374151' : '#6b7280'),
                   fontWeight: item.type === 'button' ? 600 : 500,
                   fontSize: 16,
@@ -152,7 +156,14 @@ const Header = ({ onNavigate }) => {
               >
                 <span>{item.label}</span>
                 {item.icon && (
-                  <span style={{ marginLeft: 6, fontSize: 14, color: '#6b7280', verticalAlign: 'middle' }}></span>
+                  <span style={{ 
+                    marginLeft: 6, 
+                    fontSize: 14, 
+                    color: showCategories ? '#374151' : '#6b7280', 
+                    verticalAlign: 'middle',
+                    transform: showCategories ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease'
+                  }}>⌄</span>
                 )}
                 {(activeItem === item.label || showCategories) && (
                   <span style={{
@@ -179,7 +190,7 @@ const Header = ({ onNavigate }) => {
                   border: "1px solid #e5e7eb",
                   borderRadius: 8,
                   boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                  zIndex: 100,
+                  zIndex: 10000,
                   padding: 24,
                   minWidth: 650,
                   maxHeight: 350,
@@ -200,11 +211,26 @@ const Header = ({ onNavigate }) => {
                               display: "block",
                               color: "#374151",
                               textDecoration: "none",
-                              padding: "4px 0",
+                              padding: "4px 8px",
                               fontSize: 14,
                               borderRadius: 4,
                               fontFamily: 'Inter, sans-serif',
-                            }}>{cat}</a>
+                              transition: 'background-color 0.2s ease',
+                              cursor: 'pointer',
+                            }}
+                            onMouseEnter={(e) => {
+                              (e.target as HTMLElement).style.backgroundColor = '#f3f4f6';
+                            }}
+                            onMouseLeave={(e) => {
+                              (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                            }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              console.log('Category clicked:', cat);
+                              // Handle category selection here
+                              setShowCategories(false);
+                            }}
+                            >{cat}</a>
                           </li>
                         ))}
                     </ul>
@@ -322,32 +348,136 @@ const Header = ({ onNavigate }) => {
           }}
         >
           {menuItems.map((item, index) => (
-            <button
-              key={index}
-              onClick={() => handleNavigate(item)}
-              style={{
-                background: item.type === 'button' ? '#ffcc30' : 'transparent',
-                color: item.type === 'button' ? '#111827' : '#6b7280',
-                fontWeight: item.type === 'button' ? 600 : 500,
-                fontSize: 18,
-                border: 'none',
-                borderRadius: item.type === 'button' ? 8 : 0,
-                padding: item.type === 'button' ? '12px 24px' : '12px 0',
-                cursor: 'pointer',
-                fontFamily: 'Inter, sans-serif',
-                outline: 'none',
-                textAlign: 'left',
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span>{item.label}</span>
-              {item.icon && (
-                <span style={{ fontSize: 14, color: '#6b7280' }}></span>
+            <div key={index}>
+              <button
+                onClick={() => {
+                  if (item.label === 'Browse Tasks') {
+                    setShowCategories(!showCategories);
+                  } else {
+                    handleNavigate(item);
+                  }
+                }}
+                style={{
+                  background: item.type === 'button' ? '#ffcc30' : 'transparent',
+                  color: item.type === 'button' ? '#111827' : '#6b7280',
+                  fontWeight: item.type === 'button' ? 600 : 500,
+                  fontSize: 18,
+                  border: 'none',
+                  borderRadius: item.type === 'button' ? 8 : 0,
+                  padding: item.type === 'button' ? '12px 24px' : '12px 0',
+                  cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif',
+                  outline: 'none',
+                  textAlign: 'left',
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <span>{item.label}</span>
+                {item.icon && (
+                  <span style={{ 
+                    fontSize: 14, 
+                    color: '#6b7280',
+                    transform: showCategories ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease'
+                  }}>⌄</span>
+                )}
+              </button>
+              
+              {/* Mobile Categories Dropdown */}
+              {item.label === 'Browse Tasks' && showCategories && (
+                <div style={{
+                  marginTop: 8,
+                  marginLeft: 16,
+                  padding: 12,
+                  background: '#f9fafb',
+                  borderRadius: 8,
+                  border: '1px solid #e5e7eb',
+                }}>
+                  {/* Search Input */}
+                  <input
+                    type="text"
+                    placeholder="Search categories..."
+                    value={mobileSearchQuery}
+                    onChange={(e) => setMobileSearchQuery(e.target.value)}
+                    style={{
+                      width: '90%',
+                      padding: '8px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: 6,
+                      fontSize: 14,
+                      fontFamily: 'Inter, sans-serif',
+                      marginBottom: 12,
+                      marginLeft: 'auto',
+                      marginRight: 'auto',
+                      display: 'block',
+                    }}
+                  />
+                  
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                    gap: 8,
+                    maxHeight: 300,
+                    overflowY: 'auto',
+                  }}>
+                    {categories
+                      .filter(cat => 
+                        cat.toLowerCase().includes(mobileSearchQuery.toLowerCase())
+                      )
+                      .map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => {
+                            console.log('Mobile category clicked:', cat);
+                            setShowCategories(false);
+                            setShowMobileMenu(false);
+                            setMobileSearchQuery('');
+                            // Handle category selection here
+                          }}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#374151',
+                            fontSize: 14,
+                            padding: '8px 12px',
+                            borderRadius: 6,
+                            cursor: 'pointer',
+                            fontFamily: 'Inter, sans-serif',
+                            textAlign: 'left',
+                            transition: 'background-color 0.2s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            (e.target as HTMLElement).style.backgroundColor = '#f3f4f6';
+                          }}
+                          onMouseLeave={(e) => {
+                            (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    
+                    {categories.filter(cat => 
+                      cat.toLowerCase().includes(mobileSearchQuery.toLowerCase())
+                    ).length === 0 && mobileSearchQuery && (
+                      <div style={{
+                        gridColumn: '1 / -1',
+                        textAlign: 'center',
+                        padding: '20px',
+                        color: '#6b7280',
+                        fontSize: 14,
+                        fontFamily: 'Inter, sans-serif',
+                      }}>
+                        No categories found for "{mobileSearchQuery}"
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
           ))}
         </div>
       )}

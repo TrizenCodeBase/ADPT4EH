@@ -2,7 +2,7 @@ import { auth } from './firebase';
 
 const API_BASE = (typeof window !== 'undefined' && /localhost|127\.0\.0\.1/.test(window.location.hostname))
   ? 'http://localhost:4000'
-  : 'http://localhost:4000';
+  : 'https://api.extrahand.in'; // Update this to your actual backend URL
 
 async function fetchWithAuth(path: string, init: RequestInit = {}) {
   const user = auth.currentUser;
