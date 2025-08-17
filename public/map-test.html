@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet Map Test</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 16px;
+            background-color: #f8fafc;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Leaflet Map Test</h1>
+    <p>This is a simple test to verify that Leaflet is working properly.</p>
+    
+    <div id="map"></div>
+    
+    <div class="info">
+        <h3>Map Information</h3>
+        <p>If you can see a map above with Hyderabad, India centered, then Leaflet is working correctly.</p>
+        <p>You should be able to:</p>
+        <ul>
+            <li>Zoom in/out using the mouse wheel or +/- buttons</li>
+            <li>Pan around by dragging the map</li>
+            <li>See a marker at the center point</li>
+        </ul>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map
+        const map = L.map('map').setView([17.3850, 78.4867], 13);
+        
+        // Add the OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+        
+        // Add a marker
+        const marker = L.marker([17.3850, 78.4867])
+            .addTo(map)
+            .bindPopup('Hyderabad, India')
+            .openPopup();
+        
+        // Handle map clicks
+        map.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            console.log('Map clicked at:', lat, lng);
+            
+            // Move marker to clicked location
+            marker.setLatLng([lat, lng]);
+            marker.bindPopup(`Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`).openPopup();
+        });
+        
+        console.log('Leaflet map initialized successfully!');
+    </script>
+</body>
+</html>

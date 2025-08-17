@@ -10,13 +10,15 @@ const LocationConfirmationScreen = () => {
   const navigation = useNavigation();
   const [isMobileView, setIsMobileView] = useState(false);
   const route = { params: navigation.params };
-  // addressDetails is expected to be passed via route.params
+  // addressDetails and selectedLocation are expected to be passed via route.params
   console.log('LocationConfirmationScreen - route:', route);
   console.log('LocationConfirmationScreen - route.params:', route?.params);
   const address = route?.params?.addressDetails || {};
+  const selectedLocation = route?.params?.selectedLocation;
   console.log('LocationConfirmationScreen - address:', address);
+  console.log('LocationConfirmationScreen - selectedLocation:', selectedLocation);
   const areaName = address.area || address.doorNo || 'Selected Location';
-  const fullAddress = [
+  const fullAddress = selectedLocation?.address || [
     address.doorNo,
     address.area,
     address.city,
@@ -48,6 +50,8 @@ const LocationConfirmationScreen = () => {
       try {
         const location = {
           address: fullAddress || areaName,
+          lat: selectedLocation?.latitude || 0,
+          lng: selectedLocation?.longitude || 0,
         } as any;
         await api.upsertProfile({ name: 'User', roles: ['both'], location });
       } catch {}

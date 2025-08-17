@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Platform, Dimensions, Alert } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
-import { setupRecaptcha, signInWithPhone, verifyOTP, auth } from './firebase';
+import { auth } from './firebase';
 import { sendOTP, confirmOTP } from './phoneAuth';
 import { api } from './api';
 
@@ -186,6 +186,55 @@ const OTPVerificationScreen: React.FC = () => {
     }
   };
 
+  // TEMPORARY BYPASS FUNCTION FOR DEBUGGING
+  const handleBypassOTP = async () => {
+    try {
+      console.log('🚀 TEMPORARY OTP BYPASS ACTIVATED - FOR DEBUGGING ONLY');
+      console.log('Current phone:', currentPhone);
+      console.log('Navigation object:', navigation);
+      
+      // Create a mock user profile for testing
+      const mockUser = {
+        uid: 'temp-user-' + Date.now(),
+        displayName: 'Test User',
+        phoneNumber: `+${sanitizedDigits(currentPhone)}`
+      };
+      
+      console.log('Mock user created:', mockUser);
+      
+      // Ensure minimal profile on backend (name and roles required)
+      try {
+        console.log('Attempting to create profile...');
+        const profileResult = await api.upsertProfile({ 
+          name: mockUser.displayName, 
+          roles: ['both'], 
+          phone: mockUser.phoneNumber 
+        });
+        console.log('✅ Mock profile created successfully:', profileResult);
+      } catch (profileError) {
+        console.warn('⚠️ Could not create profile, continuing anyway:', profileError);
+      }
+      
+      console.log('About to show alert...');
+      Alert.alert(
+        'Debug Mode', 
+        'OTP verification bypassed for debugging. This should be removed in production.',
+        [
+          {
+            text: 'Continue',
+            onPress: () => {
+              console.log('Alert Continue button pressed, navigating to ChooseLocationMethod...');
+              navigation.navigate('ChooseLocationMethod');
+            }
+          }
+        ]
+      );
+    } catch (e) {
+      console.error('Bypass error:', e);
+      Alert.alert('Bypass Error', 'Could not bypass OTP verification.');
+    }
+  };
+
   const saveNewPhone = async () => {
     const digits = sanitizedDigits(phoneInput);
     if (digits.length < 8 || digits.length > 15) {
@@ -271,6 +320,25 @@ const OTPVerificationScreen: React.FC = () => {
         >
           <Text style={styles.androidContinueButtonText}>Continue</Text>
         </TouchableOpacity>
+
+        {/* TEMPORARY DEBUG BYPASS BUTTON */}
+        <TouchableOpacity 
+          style={[styles.androidContinueButton, { backgroundColor: '#dc2626', marginTop: 12 }]}
+          onPress={handleBypassOTP}
+        >
+          <Text style={styles.androidContinueButtonText}>🚀 DEBUG: Skip OTP</Text>
+        </TouchableOpacity>
+
+        {/* SIMPLE BYPASS BUTTON (NO API) */}
+        <TouchableOpacity 
+          style={[styles.androidContinueButton, { backgroundColor: '#059669', marginTop: 8 }]}
+          onPress={() => {
+            console.log('🟢 SIMPLE BYPASS - Direct navigation');
+            navigation.navigate('ChooseLocationMethod');
+          }}
+        >
+          <Text style={styles.androidContinueButtonText}>🟢 SIMPLE: Skip OTP</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -330,6 +398,25 @@ const OTPVerificationScreen: React.FC = () => {
           </View>
           <TouchableOpacity style={[styles.continueButton, { opacity: otp.join('').length === OTP_LENGTH ? 1 : 0.6 }]} onPress={handleContinue} disabled={otp.join('').length !== OTP_LENGTH}>
             <Text style={styles.continueButtonText}>Continue</Text>
+          </TouchableOpacity>
+          
+          {/* TEMPORARY DEBUG BYPASS BUTTON */}
+          <TouchableOpacity 
+            style={[styles.continueButton, { backgroundColor: '#dc2626', marginTop: 12 }]}
+            onPress={handleBypassOTP}
+          >
+            <Text style={styles.continueButtonText}>🚀 DEBUG: Skip OTP</Text>
+          </TouchableOpacity>
+
+          {/* SIMPLE BYPASS BUTTON (NO API) */}
+          <TouchableOpacity 
+            style={[styles.continueButton, { backgroundColor: '#059669', marginTop: 8 }]}
+            onPress={() => {
+              console.log('🟢 SIMPLE BYPASS - Direct navigation');
+              navigation.navigate('ChooseLocationMethod');
+            }}
+          >
+            <Text style={styles.continueButtonText}>🟢 SIMPLE: Skip OTP</Text>
           </TouchableOpacity>
         </View>
       </View>

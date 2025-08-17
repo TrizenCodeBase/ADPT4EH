@@ -18,6 +18,7 @@ module.exports = {
     alias: {
       'react-native$': 'react-native-web',
       '@react-native-firebase/auth': path.resolve(__dirname, 'src/shims/rnfbauth.web.ts'),
+      'react-native-maps': path.resolve(__dirname, 'src/shims/react-native-maps.web.ts'),
     },
     extensions: ['.web.js', '.js', '.ts', '.tsx'],
   },
@@ -45,6 +46,10 @@ module.exports = {
             },
           },
         ],
+      },
+      {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
       },
     ],
   },

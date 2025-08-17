@@ -19,6 +19,7 @@ import TaskPostingForm from './TaskPostingForm';
 import TaskDetailsScreen from './TaskDetailsScreen';
 import TaskListingScreen from './TaskListingScreen';
 import ChatScreen from './ChatScreen';
+import MapTest from './components/MapTest';
 
 // Navigation context
 interface NavigationContextType {
@@ -277,6 +278,8 @@ const SimpleNavigation: React.FC = () => {
         return <TaskListingScreen />;
       case 'Chat':
         return <ChatScreen />;
+      case 'MapTest':
+        return <MapTest />;
       default:
         return Platform.OS === 'web' ? <WebLanding /> : <LandingScreen />;
     }

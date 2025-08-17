@@ -1,6 +1,9 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Platform, Image, Modal, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Platform, Modal, ScrollView, Alert } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
+import InteractiveMap from './components/InteractiveMap';
+
+import { reverseGeocode, type Location } from './services/geocoding';
 
 const PRIMARY_YELLOW = '#f9b233';
 const DARK = '#222';
@@ -9,6 +12,7 @@ const LocationInputScreen = () => {
   const navigation = useNavigation();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedTag, setSelectedTag] = useState('home');
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [addressDetails, setAddressDetails] = useState({
     doorNo: '',
     area: '',
@@ -24,19 +28,56 @@ const LocationInputScreen = () => {
     { id: 'other', label: 'other', icon: '❤️' }
   ], []);
 
+  const handleLocationSelect = useCallback(async (location: Location) => {
+    setSelectedLocation(location);
+    
+    try {
+      // Get detailed address from coordinates
+      const geocoded = await reverseGeocode(location.latitude, location.longitude);
+      
+      // Update the location with the fetched address
+      const locationWithAddress = {
+        ...location,
+        address: geocoded.address
+      };
+      setSelectedLocation(locationWithAddress);
+      
+      // Update address details with geocoded information
+      setAddressDetails({
+        doorNo: geocoded.components.street || '',
+        area: geocoded.components.street || '',
+        city: geocoded.components.city || '',
+        state: geocoded.components.state || '',
+        pinCode: geocoded.components.postalCode || '',
+        country: geocoded.components.country || ''
+      });
+    } catch (error) {
+      console.error('Failed to geocode location:', error);
+    }
+  }, []);
+
   const handleConfirm = useCallback(() => {
-    // Handle confirmation logic here
+    if (!selectedLocation) {
+      Alert.alert('No Location Selected', 'Please select a location on the map first.');
+      return;
+    }
+    
     console.log('LocationInput - handleConfirm called');
+    console.log('Selected location:', selectedLocation);
     console.log('Address details:', addressDetails);
     console.log('Navigation object:', navigation);
+    
     if (navigation && navigation.navigate) {
       console.log('LocationInput - Navigating to LocationConfirmation with addressDetails');
-      navigation.navigate('LocationConfirmation', { addressDetails });
+      navigation.navigate('LocationConfirmation', { 
+        addressDetails,
+        selectedLocation 
+      });
     } else {
       console.log('LocationInput - Navigation object is null or navigate is not available');
     }
     setShowLocationModal(false);
-  }, [addressDetails, navigation]);
+  }, [selectedLocation, addressDetails, navigation]);
 
   const handleAddressChange = useCallback((field: string, value: string) => {
     setAddressDetails(prev => ({ ...prev, [field]: value }));
@@ -180,21 +221,27 @@ const LocationInputScreen = () => {
               <Text style={styles.skipText}>Skip</Text>
             </TouchableOpacity>
           </View>
+          
           {/* Search bar */}
           <View style={styles.searchBar}>
+            <Text style={styles.searchIcon}>🔍</Text>
             <TextInput
               style={styles.searchInput}
               placeholder="Search for area, Street name..."
+              placeholderTextColor="#999"
             />
           </View>
-          {/* Map image for web */}
+          
+          {/* Interactive Map for web */}
           <View style={styles.mapContainer}>
-            <Image 
-              source={require('../assets/mapweb.jpg')}
-              style={styles.mapImage}
-              resizeMode="cover"
+            <InteractiveMap
+              onLocationSelect={handleLocationSelect}
+              height={Platform.OS === 'web' ? 450 : 400}
+              width="100%"
+              showCurrentLocation={true}
             />
           </View>
+          
           {/* Location details */}
           <View style={styles.locationDetails}>
             <Text style={styles.locationLabel}>Your Current Location</Text>
@@ -202,9 +249,15 @@ const LocationInputScreen = () => {
               <Text style={styles.changeText}>CHANGE</Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.addressText}>
-            {'5-12-63\nBank colony, Tuni, 533401, Andhra Pradesh'}
-          </Text>
+          
+          {/* Address display with pin icon */}
+          <View style={styles.addressContainer}>
+            <Text style={styles.locationPin}>📍</Text>
+            <Text style={styles.addressText}>
+              {selectedLocation?.address || 'Tap on the map to select your location'}
+            </Text>
+          </View>
+          
           <TouchableOpacity 
             style={styles.addButton}
             onPress={handleModalOpen}
@@ -225,21 +278,27 @@ const LocationInputScreen = () => {
           <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
       </View>
+      
       {/* Search bar */}
       <View style={styles.searchBar}>
+        <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.searchInput}
           placeholder="Search for area, Street name..."
+          placeholderTextColor="#999"
         />
       </View>
-      {/* Map image for mobile */}
+      
+      {/* Interactive Map for mobile */}
       <View style={styles.mapContainer}>
-        <Image 
-          source={require('../assets/mapmobile.jpg')}
-          style={styles.mapImage}
-          resizeMode="cover"
+        <InteractiveMap
+          onLocationSelect={handleLocationSelect}
+          height={Platform.OS === 'web' ? 450 : 400}
+          width="100%"
+          showCurrentLocation={true}
         />
       </View>
+      
       {/* Location details */}
       <View style={styles.locationDetails}>
         <Text style={styles.locationLabel}>Your Current Location</Text>
@@ -247,15 +306,22 @@ const LocationInputScreen = () => {
           <Text style={styles.changeText}>CHANGE</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.addressText}>
-        {'5-12-63\nBank colony, Tuni, 533401, Andhra Pradesh'}
-      </Text>
+      
+      {/* Address display with pin icon */}
+      <View style={styles.addressContainer}>
+        <Text style={styles.locationPin}>📍</Text>
+        <Text style={styles.addressText}>
+          {selectedLocation?.address || 'Tap on the map to select your location'}
+        </Text>
+      </View>
+      
       <TouchableOpacity 
         style={styles.addButton}
         onPress={handleModalOpen}
       >
         <Text style={styles.addButtonText}>Add more address details</Text>
       </TouchableOpacity>
+      
       {LocationDetailsModal}
     </View>
   );
@@ -294,29 +360,42 @@ const styles = StyleSheet.create({
   searchBar: {
     width: '90%',
     backgroundColor: '#fff',
-    borderRadius: 8,
-    boxShadow: Platform.OS === 'web' ? '0 2px 8px #eee' : undefined,
+    borderRadius: 12,
+    boxShadow: Platform.OS === 'web' ? '0 2px 8px rgba(0,0,0,0.1)' : undefined,
     elevation: Platform.OS === 'android' ? 2 : 0,
     marginTop: 8,
-    marginBottom: 8,
+    marginBottom: 16,
     padding: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  searchIcon: {
+    fontSize: 18,
+    marginLeft: 12,
+    marginRight: 8,
+    color: '#6b7280',
   },
   searchInput: {
-    width: '100%',
-    padding: 10,
+    flex: 1,
+    padding: 12,
     fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 8,
-    backgroundColor: '#f8fafc',
+    borderWidth: 0,
+    backgroundColor: 'transparent',
   },
   mapContainer: {
     width: '90%',
-    height: 260,
+    height: Platform.OS === 'web' ? 450 : 400,
     borderRadius: 16,
     marginTop: 8,
     marginBottom: 16,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   mapImage: {
     width: '100%',
@@ -339,12 +418,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 15,
   },
-  addressText: {
-    width: '90%',
-    fontSize: 15,
-    color: DARK,
-    marginBottom: 16,
-  },
   addButton: {
     width: '90%',
     backgroundColor: PRIMARY_YELLOW,
@@ -357,6 +430,25 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  addressContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    width: '90%',
+    marginBottom: 20,
+    paddingHorizontal: 4,
+  },
+  locationPin: {
+    fontSize: 18,
+    marginRight: 10,
+    marginTop: 2,
+    color: '#ef4444',
+  },
+  addressText: {
+    flex: 1,
+    fontSize: 15,
+    color: DARK,
+    lineHeight: 20,
   },
   // Modal Styles
   modalOverlay: {

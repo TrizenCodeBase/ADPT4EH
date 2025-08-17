@@ -20,13 +20,22 @@ async function webSend(phone: string): Promise<SendResult> {
     }
     
     console.log('Setting up reCAPTCHA with container:', containerId);
-    const verifier = setupRecaptcha(containerId, { size: 'normal' });
+    const verifier = setupRecaptcha(containerId, { 
+      size: 'invisible',
+      callback: () => {
+        console.log('reCAPTCHA callback triggered');
+      }
+    });
     
     console.log('Rendering reCAPTCHA...');
     // @ts-ignore
     await verifier.render?.();
     
     console.log('Sending OTP for phone:', phone);
+    
+    // Add a small delay to prevent rapid requests
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     const res: any = await signInWithPhone(phone, verifier);
     console.log('signInWithPhone result:', res);
     
@@ -34,6 +43,45 @@ async function webSend(phone: string): Promise<SendResult> {
       console.log('OTP sent successfully, confirmation result:', res.confirmationResult);
       return { confirmation: res.confirmationResult, success: true };
     }
+    
+    // Handle specific reCAPTCHA errors
+    if (res?.code === 'auth/invalid-app-credential') {
+      console.error('reCAPTCHA configuration issue. Please check Firebase console settings.');
+      
+      // Show detailed error message for debugging
+      const errorMessage = `Firebase reCAPTCHA configuration error. 
+      
+Please configure Firebase Console:
+1. Go to Authentication → Sign-in method → Enable Phone
+2. Go to Authentication → Settings → reCAPTCHA → Enable v2
+3. Add domains: localhost, 127.0.0.1, your-production-domain
+
+Error Code: ${res?.code}`;
+      
+      return { 
+        success: false, 
+        error: errorMessage, 
+        code: res?.code 
+      };
+    }
+    
+    // Handle rate limiting
+    if (res?.code === 'auth/too-many-requests') {
+      console.error('Rate limit exceeded for this phone number.');
+      
+      const errorMessage = `Too many OTP requests for this phone number.
+      
+Please wait 60 minutes before trying again, or use a different phone number for testing.
+
+Error Code: ${res?.code}`;
+      
+      return { 
+        success: false, 
+        error: errorMessage, 
+        code: res?.code 
+      };
+    }
+    
     console.error('Failed to send OTP:', res);
     return { success: false, error: res?.error, code: res?.code };
   } catch (e: any) {

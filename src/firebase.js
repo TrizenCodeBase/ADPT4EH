@@ -176,7 +176,9 @@ export const signInWithPhone = async (phoneNumber, recaptchaVerifier) => {
     console.log('🔍 Attempting phone auth with:', {
       phoneNumber,
       projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-      apiKey: process.env.REACT_APP_FIREBASE_API_KEY?.substring(0, 10) + '...'
+      apiKey: process.env.REACT_APP_FIREBASE_API_KEY?.substring(0, 10) + '...',
+      authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+      currentDomain: window.location.hostname
     });
     
     const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
@@ -186,7 +188,8 @@ export const signInWithPhone = async (phoneNumber, recaptchaVerifier) => {
     console.error('❌ Phone auth failed:', {
       code: error.code,
       message: error.message,
-      stack: error.stack?.substring(0, 200)
+      stack: error.stack?.substring(0, 200),
+      fullError: error
     });
     return { error: error.message, code: error.code, success: false };
   }
@@ -226,18 +229,29 @@ export const setupRecaptcha = (containerId, options = {}) => {
   });
   
   try {
+    // Clear any existing reCAPTCHA
+    if (window.grecaptcha && window.grecaptcha.reset) {
+      try {
+        window.grecaptcha.reset();
+      } catch (e) {
+        console.log('No existing reCAPTCHA to reset');
+      }
+    }
+    
     const verifier = new RecaptchaVerifier(auth, containerId, {
-      size: options.size || 'invisible',
+      size: 'invisible',
       callback: (response) => {
         console.log('✅ reCAPTCHA solved:', response);
+        if (options.callback) options.callback(response);
       },
       'expired-callback': () => {
         console.log('⚠️ reCAPTCHA expired');
+        if (options['expired-callback']) options['expired-callback']();
       },
       'error-callback': (error) => {
         console.error('❌ reCAPTCHA error:', error);
+        if (options['error-callback']) options['error-callback'](error);
       },
-      ...options,
     });
     
     console.log('✅ RecaptchaVerifier created successfully');
