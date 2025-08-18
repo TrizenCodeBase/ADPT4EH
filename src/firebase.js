@@ -30,6 +30,19 @@ const withTimeout = async (promise, ms, onTimeoutReturn) => {
   return result;
 };
 
+// Environment detection for debugging
+const isProduction = process.env.NODE_ENV === 'production';
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+console.log('🔥 Firebase Environment Debug:', {
+  environment: process.env.NODE_ENV,
+  isProduction,
+  isDevelopment,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  hasApiKey: !!process.env.REACT_APP_FIREBASE_API_KEY,
+  hasAuthDomain: !!process.env.REACT_APP_FIREBASE_AUTH_DOMAIN
+});
+
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -51,6 +64,10 @@ export const auth = getAuth(app);
 export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
   useFetchStreams: false,
+  // Add timeout configuration for better network handling
+  timeoutSeconds: 30,
+  // Add retry configuration
+  retryAttempts: 3,
 });
 
 // Initialize Analytics (only in browser environment)

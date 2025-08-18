@@ -239,14 +239,25 @@ const SimpleNavigation: React.FC = () => {
       return 'Landing';
     }
     
-    // If authenticated but userData is null (still loading or offline), stay on current route
+    // If authenticated but userData is null (still loading or offline)
     if (!userData) {
-      // Allow access to current route if it's valid, otherwise go to landing
-      const validRoutes = ['Landing', 'SignUp', 'Login', 'OTPVerification', 'ChooseLocationMethod', 'LocationInput', 'LocationConfirmation', 'RoleSelection', 'SearchLocation', 'PerformerHome', 'PosterHome', 'Profile', 'TaskPostingForm', 'TaskDetails', 'TaskListing', 'Chat'];
-      if (validRoutes.includes(currentRoute)) {
+      // For authenticated users without userData, enforce onboarding flow
+      const onboardingRoutes = ['ChooseLocationMethod', 'LocationInput', 'LocationConfirmation', 'RoleSelection', 'SearchLocation'];
+      const authRoutes = ['Landing', 'SignUp', 'Login', 'OTPVerification'];
+      
+      // Allow access to onboarding routes and auth routes
+      if (onboardingRoutes.includes(currentRoute) || authRoutes.includes(currentRoute)) {
         return currentRoute;
       }
-      return 'Landing';
+      
+      // If user is on a home screen or other protected route, redirect to location method
+      const protectedRoutes = ['PerformerHome', 'PosterHome', 'Profile', 'TaskPostingForm', 'TaskDetails', 'TaskListing', 'Chat'];
+      if (protectedRoutes.includes(currentRoute)) {
+        return 'ChooseLocationMethod';
+      }
+      
+      // For any other route, redirect to ChooseLocationMethod
+      return 'ChooseLocationMethod';
     }
     
     // If authenticated and userData is loaded, check onboarding completion
@@ -292,6 +303,7 @@ const SimpleNavigation: React.FC = () => {
     console.log('🔍 Navigation Debug:', {
       currentRoute,
       correctRoute,
+      platform: Platform.OS,
       isAuthenticated: !!currentUser,
       userData: userData ? {
         hasLocation: userData.location && userData.location !== 'Not specified',
@@ -300,7 +312,9 @@ const SimpleNavigation: React.FC = () => {
         roles: userData.roles
       } : null,
       hasCompletedOnboarding: hasCompletedOnboarding(),
-      loading
+      loading,
+      userDataNull: !userData,
+      currentUserExists: !!currentUser
     });
   }, [currentRoute, correctRoute, currentUser, userData, loading, hasCompletedOnboarding]);
 
