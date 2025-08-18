@@ -15,34 +15,54 @@ interface GeocodingResult {
   };
 }
 
-// Free geocoding service using OpenStreetMap Nominatim API
-export const reverseGeocode = async (latitude: number, longitude: number): Promise<GeocodingResult> => {
+// Use a CORS-free geocoding service
+const reverseGeocodeWithFallback = async (latitude: number, longitude: number): Promise<GeocodingResult> => {
   try {
+    // Try using a CORS-free geocoding service first
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
       {
         headers: {
-          'User-Agent': 'Extrahand-App/1.0',
+          'Content-Type': 'application/json',
         },
       }
     );
 
-    if (!response.ok) {
-      throw new Error('Geocoding request failed');
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        address: data.locality || data.city || data.countryName || `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`,
+        components: {
+          street: data.street || '',
+          city: data.city || data.locality || '',
+          state: data.principalSubdivision || '',
+          country: data.countryName || '',
+          postalCode: data.postcode || '',
+        },
+      };
     }
+  } catch (error) {
+    console.log('BigDataCloud geocoding failed, trying fallback...');
+  }
 
-    const data = await response.json();
-    
-    return {
-      address: data.display_name || 'Unknown location',
-      components: {
-        street: data.address?.road || data.address?.house_number,
-        city: data.address?.city || data.address?.town || data.address?.village,
-        state: data.address?.state,
-        country: data.address?.country,
-        postalCode: data.address?.postcode,
-      },
-    };
+  // Fallback: return coordinates as address
+  return {
+    address: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+    components: {
+      street: '',
+      city: '',
+      state: '',
+      country: '',
+      postalCode: '',
+    },
+  };
+};
+
+// Free geocoding service using OpenStreetMap Nominatim API
+export const reverseGeocode = async (latitude: number, longitude: number): Promise<GeocodingResult> => {
+  try {
+    // Use the CORS-free service
+    return await reverseGeocodeWithFallback(latitude, longitude);
   } catch (error) {
     console.error('Reverse geocoding error:', error);
     return {
@@ -55,11 +75,12 @@ export const reverseGeocode = async (latitude: number, longitude: number): Promi
 // Forward geocoding - convert address to coordinates
 export const forwardGeocode = async (address: string): Promise<Location | null> => {
   try {
+    // Use a CORS-free geocoding service
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`,
+      `https://api.bigdatacloud.net/data/geocode-client?q=${encodeURIComponent(address)}&localityLanguage=en`,
       {
         headers: {
-          'User-Agent': 'Extrahand-App/1.0',
+          'Content-Type': 'application/json',
         },
       }
     );
@@ -70,12 +91,11 @@ export const forwardGeocode = async (address: string): Promise<Location | null> 
 
     const data = await response.json();
     
-    if (data && data.length > 0) {
-      const result = data[0];
+    if (data && data.latitude && data.longitude) {
       return {
-        latitude: parseFloat(result.lat),
-        longitude: parseFloat(result.lon),
-        address: result.display_name,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        address: data.locality || data.city || data.countryName || address,
       };
     }
     
@@ -127,10 +147,10 @@ export const getCurrentLocation = (): Promise<Location> => {
 export const searchPlaces = async (query: string): Promise<Array<{ name: string; address: string; location: Location }>> => {
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
+      `https://api.bigdatacloud.net/data/geocode-client?q=${encodeURIComponent(query)}&localityLanguage=en&limit=5`,
       {
         headers: {
-          'User-Agent': 'Extrahand-App/1.0',
+          'Content-Type': 'application/json',
         },
       }
     );
@@ -141,15 +161,19 @@ export const searchPlaces = async (query: string): Promise<Array<{ name: string;
 
     const data = await response.json();
     
-    return data.map((item: any) => ({
-      name: item.name || item.display_name.split(',')[0],
-      address: item.display_name,
-      location: {
-        latitude: parseFloat(item.lat),
-        longitude: parseFloat(item.lon),
-        address: item.display_name,
-      },
-    }));
+    if (data && Array.isArray(data)) {
+      return data.map((item: any) => ({
+        name: item.locality || item.city || item.countryName || query,
+        address: item.locality || item.city || item.countryName || query,
+        location: {
+          latitude: item.latitude,
+          longitude: item.longitude,
+          address: item.locality || item.city || item.countryName || query,
+        },
+      }));
+    }
+    
+    return [];
   } catch (error) {
     console.error('Place search error:', error);
     return [];

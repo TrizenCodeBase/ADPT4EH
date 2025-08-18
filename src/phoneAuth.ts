@@ -20,10 +20,26 @@ async function webSend(phone: string): Promise<SendResult> {
     }
     
     console.log('Setting up reCAPTCHA with container:', containerId);
+    
+    // Clear any existing reCAPTCHA
+    if ((window as any).grecaptcha && (window as any).grecaptcha.reset) {
+      try {
+        (window as any).grecaptcha.reset();
+      } catch (e) {
+        console.log('No existing reCAPTCHA to reset');
+      }
+    }
+    
     const verifier = setupRecaptcha(containerId, { 
       size: 'invisible',
       callback: () => {
         console.log('reCAPTCHA callback triggered');
+      },
+      'expired-callback': () => {
+        console.log('reCAPTCHA expired');
+      },
+      'error-callback': (error: any) => {
+        console.error('reCAPTCHA error:', error);
       }
     });
     

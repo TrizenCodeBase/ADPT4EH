@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Platform, BackHandler } from 'react-native';
+import { useAuth } from './AuthContext';
 
 // Import all screens
 import LandingScreen from './LandingScreen';
@@ -28,6 +29,7 @@ interface NavigationContextType {
   goBack: () => void;
   params: any;
   routeHistory: string[];
+  syncUrlForRedirect: (targetRoute: string) => void; // Add this to the interface
 }
 
 const NavigationContext = React.createContext<NavigationContextType | null>(null);
@@ -177,12 +179,27 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
+  // Handle URL synchronization for redirects
+  const syncUrlForRedirect = (targetRoute: string) => {
+    if (Platform.OS === 'web' && targetRoute !== currentRoute) {
+      console.log('🔄 Syncing URL: redirecting from', currentRoute, 'to', targetRoute);
+      
+      // Update browser URL to match the target route
+      const url = `/${targetRoute}`;
+      window.history.replaceState({}, '', url);
+      
+      // Update the current route state to match
+      setCurrentRoute(targetRoute);
+    }
+  };
+
   const value: NavigationContextType = {
     currentRoute,
     navigate,
     goBack,
     params,
     routeHistory,
+    syncUrlForRedirect, // Add this to the context
   };
 
   return (
@@ -194,58 +211,106 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
 // Main navigation component
 const SimpleNavigation: React.FC = () => {
-  const { currentRoute, routeHistory } = useNavigation();
-  const [showDebug, setShowDebug] = useState(true);
+  const { currentRoute, syncUrlForRedirect } = useNavigation();
+  const { currentUser, userData, loading } = useAuth();
 
-  // Debug component for testing (remove in production)
-  const DebugInfo = () => {
-    if (Platform.OS === 'web' && showDebug) {
-      return (
-        <div style={{
-          position: 'fixed',
-          top: 10,
-          right: 10,
-          background: 'rgba(0,0,0,0.8)',
-          color: 'white',
-          padding: 10,
-          borderRadius: 5,
-          fontSize: 12,
-          zIndex: 9999,
-          maxWidth: 300
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-            <span>Debug Info</span>
-            <button 
-              onClick={() => setShowDebug(false)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'white',
-                cursor: 'pointer',
-                fontSize: 16,
-                padding: 0,
-                margin: 0
-              }}
-            >
-              ×
-            </button>
-          </div>
-          <div>Current: {currentRoute}</div>
-          <div>History: {routeHistory.join(' → ')}</div>
-          <div>Length: {routeHistory.length}</div>
-        </div>
-      );
+  // Check if user has completed onboarding
+  const hasCompletedOnboarding = useCallback(() => {
+    if (!currentUser || !userData) return false;
+    
+    // Check if user has location and roles set
+    const hasLocation = userData.location && userData.location !== 'Not specified';
+    const hasRoles = userData.roles && userData.roles.length > 0;
+    
+    return hasLocation && hasRoles;
+  }, [currentUser, userData]);
+
+  // Determine the correct route based on authentication and onboarding status
+  const getCorrectRoute = () => {
+    // If still loading auth state, show landing
+    if (loading) return 'Landing';
+    
+    // If not authenticated, allow access to auth screens
+    if (!currentUser) {
+      const authRoutes = ['Landing', 'SignUp', 'Login', 'OTPVerification'];
+      if (authRoutes.includes(currentRoute)) {
+        return currentRoute;
+      }
+      return 'Landing';
     }
-    return null;
+    
+    // If authenticated but userData is null (still loading or offline), stay on current route
+    if (!userData) {
+      // Allow access to current route if it's valid, otherwise go to landing
+      const validRoutes = ['Landing', 'SignUp', 'Login', 'OTPVerification', 'ChooseLocationMethod', 'LocationInput', 'LocationConfirmation', 'RoleSelection', 'SearchLocation', 'PerformerHome', 'PosterHome', 'Profile', 'TaskPostingForm', 'TaskDetails', 'TaskListing', 'Chat'];
+      if (validRoutes.includes(currentRoute)) {
+        return currentRoute;
+      }
+      return 'Landing';
+    }
+    
+    // If authenticated and userData is loaded, check onboarding completion
+    if (!hasCompletedOnboarding()) {
+      const onboardingRoutes = [
+        'ChooseLocationMethod', 
+        'LocationInput', 
+        'LocationConfirmation', 
+        'RoleSelection',
+        'SearchLocation'
+      ];
+      
+      // Allow access to onboarding routes
+      if (onboardingRoutes.includes(currentRoute)) {
+        return currentRoute;
+      }
+      
+      // If user is on a home screen but hasn't completed onboarding, redirect to location method
+      const homeRoutes = ['PerformerHome', 'PosterHome', 'Profile', 'TaskPostingForm', 'TaskDetails', 'TaskListing', 'Chat'];
+      if (homeRoutes.includes(currentRoute)) {
+        return 'ChooseLocationMethod';
+      }
+      
+      // For any other route, redirect to ChooseLocationMethod
+      return 'ChooseLocationMethod';
+    }
+    
+    // If onboarding is complete, allow access to all screens
+    return currentRoute;
   };
+
+  const correctRoute = getCorrectRoute();
+
+  // Sync URL when correct route differs from current route
+  useEffect(() => {
+    if (correctRoute !== currentRoute) {
+      syncUrlForRedirect(correctRoute);
+    }
+  }, [correctRoute, currentRoute, syncUrlForRedirect]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🔍 Navigation Debug:', {
+      currentRoute,
+      correctRoute,
+      isAuthenticated: !!currentUser,
+      userData: userData ? {
+        hasLocation: userData.location && userData.location !== 'Not specified',
+        hasRoles: userData.roles && userData.roles.length > 0,
+        location: userData.location,
+        roles: userData.roles
+      } : null,
+      hasCompletedOnboarding: hasCompletedOnboarding(),
+      loading
+    });
+  }, [currentRoute, correctRoute, currentUser, userData, loading, hasCompletedOnboarding]);
 
   const renderScreen = () => {
     // For web platform, use WebLanding for the Landing route
-    if (Platform.OS === 'web' && currentRoute === 'Landing') {
+    if (Platform.OS === 'web' && correctRoute === 'Landing') {
       return <WebLanding />;
     }
 
-    switch (currentRoute) {
+    switch (correctRoute) {
       case 'Landing':
         return <LandingScreen />;
       case 'SignUp':

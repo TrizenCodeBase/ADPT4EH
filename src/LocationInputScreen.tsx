@@ -57,26 +57,64 @@ const LocationInputScreen = () => {
   }, []);
 
   const handleConfirm = useCallback(() => {
+    console.log('🔍 LocationInput - handleConfirm called - START');
+    
     if (!selectedLocation) {
+      console.log('❌ LocationInput - No location selected, showing alert');
       Alert.alert('No Location Selected', 'Please select a location on the map first.');
       return;
     }
     
-    console.log('LocationInput - handleConfirm called');
-    console.log('Selected location:', selectedLocation);
-    console.log('Address details:', addressDetails);
-    console.log('Navigation object:', navigation);
+    console.log('✅ LocationInput - Location selected, proceeding with navigation');
+    console.log('📍 Selected location:', selectedLocation);
+    console.log('📝 Address details:', addressDetails);
+    console.log('🧭 Navigation object:', navigation);
+    console.log('🔧 Navigation methods available:', {
+      navigate: typeof navigation?.navigate,
+      goBack: typeof navigation?.goBack,
+      currentRoute: navigation?.currentRoute
+    });
     
     if (navigation && navigation.navigate) {
-      console.log('LocationInput - Navigating to LocationConfirmation with addressDetails');
-      navigation.navigate('LocationConfirmation', { 
-        addressDetails,
-        selectedLocation 
-      });
+      console.log('🚀 LocationInput - Navigation object available, attempting navigation');
+      try {
+        const params = { 
+          addressDetails,
+          selectedLocation 
+        };
+        console.log('📦 Navigation params:', params);
+        
+        console.log('🔄 LocationInput - Calling navigation.navigate...');
+        navigation.navigate('LocationConfirmation', params);
+        console.log('✅ LocationInput - Navigation call completed successfully');
+        
+        // Add a small delay to ensure navigation completes
+        setTimeout(() => {
+          console.log('⏰ LocationInput - After navigation delay, checking route');
+          console.log('📍 Current route should be LocationConfirmation');
+          console.log('🔍 Navigation object after delay:', {
+            currentRoute: navigation?.currentRoute,
+            navigate: typeof navigation?.navigate
+          });
+        }, 500);
+        
+      } catch (error) {
+        console.error('❌ LocationInput - Navigation failed with error:', error);
+        Alert.alert('Navigation Error', 'Failed to navigate to confirmation screen. Please try again.');
+      }
     } else {
-      console.log('LocationInput - Navigation object is null or navigate is not available');
+      console.log('❌ LocationInput - Navigation object is null or navigate is not available');
+      console.log('🔍 Navigation object details:', {
+        navigation: !!navigation,
+        navigate: typeof navigation?.navigate,
+        goBack: typeof navigation?.goBack
+      });
+      Alert.alert('Navigation Error', 'Navigation is not available. Please refresh the page.');
     }
+    
+    console.log('🔍 LocationInput - Closing modal');
     setShowLocationModal(false);
+    console.log('🔍 LocationInput - handleConfirm called - END');
   }, [selectedLocation, addressDetails, navigation]);
 
   const handleAddressChange = useCallback((field: string, value: string) => {
@@ -201,10 +239,16 @@ const LocationInputScreen = () => {
             </View>
           </ScrollView>
 
-          {/* Confirm Button */}
-          <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
-            <Text style={styles.confirmButtonText}>Confirm</Text>
-          </TouchableOpacity>
+                     {/* Confirm Button */}
+           <TouchableOpacity 
+             style={styles.confirmButton} 
+             onPress={() => {
+               console.log('🔘 LocationInput - Confirm button pressed!');
+               handleConfirm();
+             }}
+           >
+             <Text style={styles.confirmButtonText}>Confirm</Text>
+           </TouchableOpacity>
         </View>
       </View>
     </Modal>

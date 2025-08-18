@@ -153,7 +153,8 @@ const SignUpScreen = () => {
 
       if (result.success) {
         showAlert('Account Created', 'Signed up with Google successfully!');
-        navigation.navigate('PerformerHome');
+        // Navigate to onboarding instead of directly to home
+        navigation.navigate('ChooseLocationMethod');
       } else {
         showAlert('Google Sign up failed', result.error || 'Please try again.');
       }

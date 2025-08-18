@@ -322,12 +322,12 @@ const OTPVerificationScreen: React.FC = () => {
         </TouchableOpacity>
 
         {/* TEMPORARY DEBUG BYPASS BUTTON */}
-        <TouchableOpacity 
+        {/* <TouchableOpacity 
           style={[styles.androidContinueButton, { backgroundColor: '#dc2626', marginTop: 12 }]}
           onPress={handleBypassOTP}
         >
           <Text style={styles.androidContinueButtonText}>🚀 DEBUG: Skip OTP</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {/* SIMPLE BYPASS BUTTON (NO API) */}
         <TouchableOpacity 
@@ -337,7 +337,7 @@ const OTPVerificationScreen: React.FC = () => {
             navigation.navigate('ChooseLocationMethod');
           }}
         >
-          <Text style={styles.androidContinueButtonText}>🟢 SIMPLE: Skip OTP</Text>
+          <Text style={styles.androidContinueButtonText}>Get Verified Later</Text>
         </TouchableOpacity>
       </View>
     );
@@ -401,12 +401,12 @@ const OTPVerificationScreen: React.FC = () => {
           </TouchableOpacity>
           
           {/* TEMPORARY DEBUG BYPASS BUTTON */}
-          <TouchableOpacity 
+          {/* <TouchableOpacity 
             style={[styles.continueButton, { backgroundColor: '#dc2626', marginTop: 12 }]}
             onPress={handleBypassOTP}
           >
             <Text style={styles.continueButtonText}>🚀 DEBUG: Skip OTP</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* SIMPLE BYPASS BUTTON (NO API) */}
           <TouchableOpacity 
@@ -416,7 +416,7 @@ const OTPVerificationScreen: React.FC = () => {
               navigation.navigate('ChooseLocationMethod');
             }}
           >
-            <Text style={styles.continueButtonText}>🟢 SIMPLE: Skip OTP</Text>
+            <Text style={styles.continueButtonText}>Get Verified Later</Text>
           </TouchableOpacity>
         </View>
       </View>

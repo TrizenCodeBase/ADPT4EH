@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions } from 'react-native';
 import { api } from './api';
 import { useNavigation } from './SimpleNavigation';
@@ -13,8 +13,8 @@ const LocationConfirmationScreen = () => {
   // addressDetails and selectedLocation are expected to be passed via route.params
   console.log('LocationConfirmationScreen - route:', route);
   console.log('LocationConfirmationScreen - route.params:', route?.params);
-  const address = route?.params?.addressDetails || {};
-  const selectedLocation = route?.params?.selectedLocation;
+  const address = useMemo(() => route?.params?.addressDetails || {}, [route?.params?.addressDetails]);
+  const selectedLocation = useMemo(() => route?.params?.selectedLocation, [route?.params?.selectedLocation]);
   console.log('LocationConfirmationScreen - address:', address);
   console.log('LocationConfirmationScreen - selectedLocation:', selectedLocation);
   const areaName = address.area || address.doorNo || 'Selected Location';
@@ -46,22 +46,57 @@ const LocationConfirmationScreen = () => {
   }, []);
 
   useEffect(() => {
+    console.log('🔍 LocationConfirmationScreen - useEffect triggered');
+    console.log('📍 Address details:', address);
+    console.log('📍 Selected location:', selectedLocation);
+    console.log('🧭 Navigation object:', navigation);
+    
     const persistAndGo = async () => {
+      console.log('🚀 LocationConfirmationScreen - persistAndGo called');
+      
+      // Try to save location data, but don't block navigation if it fails
       try {
         const location = {
           address: fullAddress || areaName,
           lat: selectedLocation?.latitude || 0,
           lng: selectedLocation?.longitude || 0,
         } as any;
-        await api.upsertProfile({ name: 'User', roles: ['both'], location });
-      } catch {}
+        console.log('💾 Attempting to save location data:', location);
+        
+        // Add timeout to prevent hanging
+        const savePromise = api.upsertProfile({ name: 'User', roles: ['both'], location });
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Save timeout')), 5000)
+        );
+        
+        await Promise.race([savePromise, timeoutPromise]);
+        console.log('✅ Location data saved successfully');
+      } catch (error) {
+        console.error('❌ Failed to save location data:', error);
+        console.log('⚠️ Continuing with navigation despite save failure');
+      }
+      
+      // Always attempt navigation, regardless of save success
       if (navigation && navigation.navigate) {
-        navigation.navigate('RoleSelection');
+        console.log('🚀 LocationConfirmationScreen - Navigating to RoleSelection');
+        try {
+          navigation.navigate('RoleSelection');
+          console.log('✅ Navigation to RoleSelection successful');
+        } catch (navError) {
+          console.error('❌ Navigation failed:', navError);
+        }
+      } else {
+        console.log('❌ LocationConfirmationScreen - Navigation object not available');
       }
     };
+    
+    console.log('⏰ LocationConfirmationScreen - Setting timer for 1 second');
     const timer = setTimeout(persistAndGo, 1000);
-    return () => clearTimeout(timer);
-  }, [navigation]);
+    return () => {
+      console.log('🧹 LocationConfirmationScreen - Cleaning up timer');
+      clearTimeout(timer);
+    };
+  }, [navigation, address, selectedLocation, fullAddress, areaName]);
 
   // Frameless layout for mobile (Android, iOS, and mobile web)
   if (isMobileView) {
