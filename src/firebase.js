@@ -34,24 +34,32 @@ const withTimeout = async (promise, ms, onTimeoutReturn) => {
 const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
+// Check if using fallback credentials
+const usingFallbackApiKey = !process.env.REACT_APP_FIREBASE_API_KEY;
+const usingFallbackProjectId = !process.env.REACT_APP_FIREBASE_PROJECT_ID;
+
 console.log('🔥 Firebase Environment Debug:', {
-  environment: process.env.NODE_ENV,
+  environment: process.env.NODE_ENV || 'development',
   isProduction,
   isDevelopment,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || 'extrahand-app',
   hasApiKey: !!process.env.REACT_APP_FIREBASE_API_KEY,
-  hasAuthDomain: !!process.env.REACT_APP_FIREBASE_AUTH_DOMAIN
+  hasAuthDomain: !!process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  usingFallbackApiKey,
+  usingFallbackProjectId,
+  finalApiKey: process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw',
+  finalProjectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || 'extrahand-app'
 });
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID,
-  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw',
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || 'extrahand-app.firebaseapp.com',
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || 'extrahand-app',
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || 'extrahand-app.appspot.com',
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || '961487777082',
+  appId: process.env.REACT_APP_FIREBASE_APP_ID || '1:961487777082:web:dd95fe5a7658b0e3b1f403',
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || 'G-GXB3LSMR5B'
 };
 
 // Initialize Firebase
