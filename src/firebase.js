@@ -64,11 +64,55 @@ export const auth = getAuth(app);
 export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
   useFetchStreams: false,
-  // Add timeout configuration for better network handling
-  timeoutSeconds: 30,
-  // Add retry configuration
-  retryAttempts: 3,
+  // Enhanced timeout configuration for better network handling
+  timeoutSeconds: 60, // Increased from 30 to 60 seconds
+  // Enhanced retry configuration
+  retryAttempts: 5, // Increased from 3 to 5 attempts
+  // Additional settings for better connection stability
+  cacheSizeBytes: 50 * 1024 * 1024, // 50MB cache
+  ignoreUndefinedProperties: true,
 });
+
+// Add connection state monitoring
+let isConnected = false;
+let connectionRetries = 0;
+const maxConnectionRetries = 3;
+
+// Monitor Firestore connection state
+if (typeof window !== 'undefined') {
+  try {
+    // Enable network connectivity monitoring
+    import('firebase/firestore').then(({ enableNetwork, disableNetwork, onSnapshot }) => {
+      // Test connection with a simple operation
+      const testConnection = async () => {
+        try {
+          console.log('🔍 Testing Firestore connection...');
+          const testDoc = doc(db, '_test', 'connection');
+          await getDoc(testDoc);
+          isConnected = true;
+          connectionRetries = 0;
+          console.log('✅ Firestore connection successful');
+        } catch (error) {
+          console.warn('⚠️ Firestore connection test failed:', error.code);
+          isConnected = false;
+          
+          if (connectionRetries < maxConnectionRetries) {
+            connectionRetries++;
+            console.log(`🔄 Retrying Firestore connection (${connectionRetries}/${maxConnectionRetries})...`);
+            setTimeout(testConnection, 2000 * connectionRetries); // Exponential backoff
+          } else {
+            console.error('❌ Firestore connection failed after max retries');
+          }
+        }
+      };
+      
+      // Test connection on initialization
+      testConnection();
+    });
+  } catch (error) {
+    console.warn('⚠️ Could not initialize Firestore connection monitoring:', error);
+  }
+}
 
 // Initialize Analytics (only in browser environment)
 let analytics = null;
@@ -82,16 +126,51 @@ if (typeof window !== 'undefined') {
 export { analytics };
 
 export const ensureUserProfile = async (uid, data) => {
-  try {
-    await setDoc(doc(db, 'users', uid), {
-      uid,
-      createdAt: new Date().toISOString(),
-      ...data,
-    }, { merge: true });
-    return { success: true };
-  } catch (error) {
-    return { success: false, code: error.code, error: error.message };
+  const maxRetries = 3;
+  let attempt = 0;
+  
+  while (attempt < maxRetries) {
+    try {
+      console.log(`💾 Attempting to save user profile (attempt ${attempt + 1}/${maxRetries})`);
+      
+      await setDoc(doc(db, 'users', uid), {
+        uid,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        ...data,
+      }, { merge: true });
+      
+      console.log('✅ User profile saved successfully');
+      return { success: true };
+    } catch (error) {
+      attempt++;
+      console.error(`❌ User profile save failed (attempt ${attempt}/${maxRetries}):`, error.code, error.message);
+      
+      // If it's a network error or timeout, retry
+      if (error.code === 'unavailable' || error.code === 'deadline-exceeded' || error.message.includes('timeout')) {
+        if (attempt < maxRetries) {
+          console.log(`🔄 Retrying in ${attempt * 1000}ms...`);
+          await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+          continue;
+        }
+      }
+      
+      // For other errors, don't retry
+      return { 
+        success: false, 
+        code: error.code, 
+        error: error.message,
+        attempt 
+      };
+    }
   }
+  
+  return { 
+    success: false, 
+    code: 'max-retries-exceeded', 
+    error: 'Failed after maximum retry attempts',
+    attempt 
+  };
 };
 
 export const resetPassword = async (email) => {
@@ -137,9 +216,24 @@ export const signInWithEmail = async (email, password) => {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     ensureUserProfile(uid, { email });
 
-    // Best-effort read profile with a 5s timeout; proceed if unavailable
-    const userDoc = await withTimeout(getDoc(doc(db, 'users', uid)), 5000, { __timeout: true });
-    const userData = userDoc && !userDoc.__timeout && userDoc.exists ? (userDoc.exists() ? userDoc.data() : null) : null;
+    // Best-effort read profile with enhanced timeout and error handling
+    let userData = null;
+    try {
+      console.log('📖 Attempting to read user profile...');
+      const userDoc = await withTimeout(getDoc(doc(db, 'users', uid)), 10000, { __timeout: true }); // Increased timeout to 10s
+      
+      if (userDoc && !userDoc.__timeout && userDoc.exists()) {
+        userData = userDoc.data();
+        console.log('✅ User profile read successfully');
+      } else if (userDoc.__timeout) {
+        console.warn('⚠️ User profile read timed out, proceeding without profile data');
+      } else {
+        console.log('ℹ️ User profile does not exist yet');
+      }
+    } catch (profileError) {
+      console.warn('⚠️ Failed to read user profile:', profileError.code, profileError.message);
+      // Continue without profile data - it will be created later
+    }
 
     return { 
       user: userCredential.user, 
@@ -147,6 +241,7 @@ export const signInWithEmail = async (email, password) => {
       success: true 
     };
   } catch (error) {
+    console.error('❌ Sign in failed:', error.code, error.message);
     return { error: error.message, code: error.code, success: false };
   }
 };

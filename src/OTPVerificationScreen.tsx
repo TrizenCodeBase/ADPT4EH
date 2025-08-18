@@ -33,7 +33,15 @@ const OTPVerificationScreen: React.FC = () => {
   const [timer, setTimer] = useState(30);
   const [isMobileView, setIsMobileView] = useState(false);
   const [sending, setSending] = useState(false);
-  const inputRefs = Array.from({ length: OTP_LENGTH }, () => useRef<any>(null));
+  
+  // Create refs properly
+  const inputRef0 = useRef<any>(null);
+  const inputRef1 = useRef<any>(null);
+  const inputRef2 = useRef<any>(null);
+  const inputRef3 = useRef<any>(null);
+  const inputRef4 = useRef<any>(null);
+  const inputRef5 = useRef<any>(null);
+  const inputRefs = [inputRef0, inputRef1, inputRef2, inputRef3, inputRef4, inputRef5];
 
   // Check if we're on mobile web view
   useEffect(() => {
@@ -436,15 +444,19 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    maxWidth: 400,
+    maxWidth: 480,
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+    } : {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.12,
+      shadowRadius: 8,
+      elevation: 4,
+    }),
     alignItems: 'center',
   },
   heading: {
