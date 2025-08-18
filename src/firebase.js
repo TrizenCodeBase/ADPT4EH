@@ -42,24 +42,25 @@ console.log('🔥 Firebase Environment Debug:', {
   environment: process.env.NODE_ENV || 'development',
   isProduction,
   isDevelopment,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || 'extrahand-app',
-  hasApiKey: !!process.env.REACT_APP_FIREBASE_API_KEY,
-  hasAuthDomain: !!process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-  usingFallbackApiKey,
-  usingFallbackProjectId,
-  finalApiKey: process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw',
-  finalProjectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || 'extrahand-app'
+  projectId: 'extrahand-app',
+  hasApiKey: true,
+  hasAuthDomain: true,
+  usingFallbackApiKey: false,
+  usingFallbackProjectId: false,
+  finalApiKey: 'AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw',
+  finalProjectId: 'extrahand-app',
+  configSource: 'hardcoded'
 });
 
-// Your web app's Firebase configuration
+// Your web app's Firebase configuration - Hardcoded for production reliability
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw',
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || 'extrahand-app.firebaseapp.com',
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || 'extrahand-app',
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || 'extrahand-app.appspot.com',
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || '961487777082',
-  appId: process.env.REACT_APP_FIREBASE_APP_ID || '1:961487777082:web:dd95fe5a7658b0e3b1f403',
-  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || 'G-GXB3LSMR5B'
+  apiKey: 'AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw',
+  authDomain: 'extrahand-app.firebaseapp.com',
+  projectId: 'extrahand-app',
+  storageBucket: 'extrahand-app.appspot.com',
+  messagingSenderId: '961487777082',
+  appId: '1:961487777082:web:dd95fe5a7658b0e3b1f403',
+  measurementId: 'G-GXB3LSMR5B'
 };
 
 // Initialize Firebase
