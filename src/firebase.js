@@ -42,25 +42,25 @@ console.log('🔥 Firebase Environment Debug:', {
   environment: process.env.NODE_ENV || 'development',
   isProduction,
   isDevelopment,
-  projectId: 'extrahand-app',
-  hasApiKey: true,
-  hasAuthDomain: true,
-  usingFallbackApiKey: false,
-  usingFallbackProjectId: false,
-  finalApiKey: 'AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw',
-  finalProjectId: 'extrahand-app',
-  configSource: 'hardcoded'
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || 'extrahand-app (fallback)',
+  hasApiKey: !!process.env.REACT_APP_FIREBASE_API_KEY,
+  hasAuthDomain: !!process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  usingFallbackApiKey: !process.env.REACT_APP_FIREBASE_API_KEY,
+  usingFallbackProjectId: !process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  finalApiKey: (process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw').substring(0, 10) + '...',
+  finalProjectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || 'extrahand-app',
+  configSource: process.env.REACT_APP_FIREBASE_API_KEY ? 'environment' : 'fallback'
 });
 
-// Your web app's Firebase configuration - Hardcoded for production reliability
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: 'AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw',
-  authDomain: 'extrahand-app.firebaseapp.com',
-  projectId: 'extrahand-app',
-  storageBucket: 'extrahand-app.appspot.com',
-  messagingSenderId: '961487777082',
-  appId: '1:961487777082:web:dd95fe5a7658b0e3b1f403',
-  measurementId: 'G-GXB3LSMR5B'
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw',
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || 'extrahand-app.firebaseapp.com',
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || 'extrahand-app',
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || 'extrahand-app.appspot.com',
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || '961487777082',
+  appId: process.env.REACT_APP_FIREBASE_APP_ID || '1:961487777082:web:dd95fe5a7658b0e3b1f403',
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || 'G-GXB3LSMR5B'
 };
 
 // Initialize Firebase
