@@ -441,10 +441,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  mapImage: {
-    width: '100%',
-    height: '100%',
-  },
+
   locationDetails: {
     width: '90%',
     flexDirection: 'row',
