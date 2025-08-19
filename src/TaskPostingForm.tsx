@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
+import { api } from './api';
 
 const PRIMARY_YELLOW = '#f9b233';
 const PRIMARY_BLUE = '#2563eb';
@@ -30,6 +31,7 @@ const TaskPostingForm: React.FC = () => {
   const [dueTime, setDueTime] = useState('');
   const [budget, setBudget] = useState('');
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Check if we're on mobile web view
   useEffect(() => {
@@ -54,13 +56,56 @@ const TaskPostingForm: React.FC = () => {
     'Handyman', 'Gardening', 'Moving', 'Other'
   ];
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Final submission
-      Alert.alert('Success', 'Task posted successfully!');
-      navigation.goBack();
+      // Final submission - Create task in database
+      if (isSubmitting) return; // Prevent double submission
+      
+      try {
+        setIsSubmitting(true);
+        
+        // Validate required fields
+        if (!taskTitle || !taskDescription || !taskCategory || !location || !budget) {
+          Alert.alert('Error', 'Please fill in all required fields');
+          return;
+        }
+
+        // Prepare task data
+        const coordinates = getCoordinatesFromAddress(location);
+        const taskData = {
+          type: taskCategory,
+          description: `${taskTitle}\n\n${taskDescription}`,
+          location: {
+            lat: coordinates.lat,
+            lng: coordinates.lng,
+            address: location,
+          },
+          preferredTime: dueDate && dueTime ? `${dueDate} ${dueTime}` : null,
+          budget: parseFloat(budget) || null,
+          skillsRequired: getSkillsForCategory(taskCategory),
+        };
+
+        console.log('Creating task with data:', taskData);
+
+        // Create task in database
+        const createdTask = await api.createTask(taskData);
+        
+        console.log('Task created successfully:', createdTask);
+        
+        Alert.alert('Success', 'Task posted successfully!', [
+          {
+            text: 'OK',
+            onPress: () => navigation.goBack(),
+          },
+        ]);
+      } catch (error) {
+        console.error('Error creating task:', error);
+        Alert.alert('Error', 'Failed to create task. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -74,6 +119,31 @@ const TaskPostingForm: React.FC = () => {
 
   const handleImageUpload = () => {
     Alert.alert('Image Upload', 'Image upload functionality would be implemented here.');
+  };
+
+  // Simple function to get coordinates from address (placeholder implementation)
+  const getCoordinatesFromAddress = (address: string) => {
+    // TODO: Implement proper geocoding service (Google Maps, OpenStreetMap, etc.)
+    // For now, return default coordinates
+    return {
+      lat: 17.375562271011905, // Default to Hyderabad coordinates
+      lng: 78.48684327079734,
+    };
+  };
+
+  // Function to get skills required based on task category
+  const getSkillsForCategory = (category: string) => {
+    const skillsMap: { [key: string]: string[] } = {
+      'Home Services': ['home maintenance', 'repair', 'installation'],
+      'Delivery': ['delivery', 'transportation', 'logistics'],
+      'Tech Help': ['technology', 'computer repair', 'software'],
+      'Cleaning': ['cleaning', 'housekeeping', 'sanitization'],
+      'Handyman': ['repair', 'maintenance', 'construction'],
+      'Gardening': ['gardening', 'landscaping', 'plant care'],
+      'Moving': ['moving', 'packing', 'transportation'],
+      'Other': ['general', 'assistance'],
+    };
+    return skillsMap[category] || ['general'];
   };
 
   const renderStep1 = () => (
@@ -274,9 +344,13 @@ const TaskPostingForm: React.FC = () => {
 
         {/* Bottom Action Button */}
         <View style={styles.mobileBottomContainer}>
-          <TouchableOpacity style={styles.mobileNextButton} onPress={handleNext}>
+          <TouchableOpacity 
+            style={[styles.mobileNextButton, isSubmitting && styles.mobileNextButtonDisabled]} 
+            onPress={handleNext}
+            disabled={isSubmitting}
+          >
             <Text style={styles.mobileNextButtonText}>
-              {currentStep === 3 ? 'Post Task' : 'Next'}
+              {isSubmitting ? 'Creating Task...' : (currentStep === 3 ? 'Post Task' : 'Next')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -320,9 +394,13 @@ const TaskPostingForm: React.FC = () => {
 
       {/* Bottom Action Button */}
       <View style={styles.desktopBottomContainer}>
-        <TouchableOpacity style={styles.desktopNextButton} onPress={handleNext}>
+        <TouchableOpacity 
+          style={[styles.desktopNextButton, isSubmitting && styles.desktopNextButtonDisabled]} 
+          onPress={handleNext}
+          disabled={isSubmitting}
+        >
           <Text style={styles.desktopNextButtonText}>
-            {currentStep === 3 ? 'Post Task' : 'Next'}
+            {isSubmitting ? 'Creating Task...' : (currentStep === 3 ? 'Post Task' : 'Next')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -508,6 +586,9 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 16,
     fontWeight: '600',
+  },
+  mobileNextButtonDisabled: {
+    opacity: 0.7,
   },
 
   // Desktop styles
@@ -712,6 +793,9 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 20,
     fontWeight: '600',
+  },
+  desktopNextButtonDisabled: {
+    opacity: 0.7,
   },
 });
 

@@ -1,8 +1,6 @@
 import { auth } from './firebase';
 
-const API_BASE = (typeof window !== 'undefined' && /localhost|127\.0\.0\.1/.test(window.location.hostname))
-  ? 'http://localhost:4000'
-   : 'https://extrahandbackend.llp.trizenventures.com'; // Production backend URL
+const API_BASE = 'https://extrahandbackend.llp.trizenventures.com'; // Production backend URL
 
 async function fetchWithAuth(path: string, init: RequestInit = {}) {
   const user = auth.currentUser;
@@ -29,6 +27,22 @@ export const api = {
   },
   me() {
     return fetchWithAuth('/api/v1/profiles/me');
+  },
+  createTask(body: any) {
+    return fetchWithAuth('/api/v1/tasks', { method: 'POST', body: JSON.stringify(body) });
+  },
+  getTasks(params?: any) {
+    const queryString = params ? `?${new URLSearchParams(params).toString()}` : '';
+    return fetchWithAuth(`/api/v1/tasks${queryString}`);
+  },
+  getTask(id: string) {
+    return fetchWithAuth(`/api/v1/tasks/${id}`);
+  },
+  acceptTask(id: string) {
+    return fetchWithAuth(`/api/v1/tasks/${id}/accept`, { method: 'POST' });
+  },
+  completeTask(id: string, body: any) {
+    return fetchWithAuth(`/api/v1/tasks/${id}/complete`, { method: 'POST', body: JSON.stringify(body) });
   },
 };
 
