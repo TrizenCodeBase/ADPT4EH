@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from './firebase';
+import { auth } from './firebase';
+import { api } from './api';
 
 const AuthContext = createContext();
 
@@ -18,25 +18,31 @@ export const AuthProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const refreshUserData = async () => {
+    if (currentUser) {
+      try {
+        console.log('🔄 Refreshing user data from backend API...');
+        const userData = await api.me();
+        setUserData(userData);
+        console.log('✅ User data refreshed successfully:', userData);
+      } catch (error) {
+        console.warn('❌ Failed to refresh user data:', error.message);
+      }
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setCurrentUser(user);
         try {
-          const snap = await getDoc(doc(db, 'users', user.uid));
-          if (snap.exists()) {
-            setUserData(snap.data());
-          } else {
-            setUserData(null);
-          }
+          // Fetch user data from backend API instead of Firestore
+          const userData = await api.me();
+          setUserData(userData);
         } catch (error) {
-          // If offline, continue with auth user only
-          if (error?.code === 'unavailable' || error?.message?.includes('offline')) {
-            console.warn('Firestore offline; proceeding without profile');
-            setUserData(null);
-          } else {
-            console.error('Error fetching user data:', error);
-          }
+          // If API call fails, continue with auth user only
+          console.warn('Backend API offline; proceeding without profile data:', error.message);
+          setUserData(null);
         }
       } else {
         setCurrentUser(null);
@@ -48,7 +54,7 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  const value = { currentUser, userData, loading };
+  const value = { currentUser, userData, loading, refreshUserData };
 
   return (
     <AuthContext.Provider value={value}>

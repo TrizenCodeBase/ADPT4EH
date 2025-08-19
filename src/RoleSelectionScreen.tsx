@@ -2,12 +2,15 @@ import { api } from './api';
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Dimensions } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
+import { useAuth } from './AuthContext';
 
 const PRIMARY_YELLOW = '#f9b233';
 const DARK = '#222';
 
 const RoleSelectionScreen = () => {
   const navigation = useNavigation();
+  const { refreshUserData } = useAuth();
+  const { setIsRoleSelectionInProgress } = useNavigation();
   const [goal, setGoal] = useState('');
   const [userType, setUserType] = useState('');
   const [agreeUpdates, setAgreeUpdates] = useState(false);
@@ -96,14 +99,75 @@ const RoleSelectionScreen = () => {
               I agree to the Extrahand Terms & Conditions Community Guidelines, and Privacy Policy *
             </Text>
           </View>
-          <TouchableOpacity
+                    <TouchableOpacity
             style={[styles.androidCompleteBtn, !canComplete && { opacity: 0.5 }]}
             disabled={!canComplete}
-            onPress={async () => {
-              const roles = goal === 'earn' ? ['tasker'] : ['poster'];
-              try { await api.upsertProfile({ name: 'User', roles }); } catch {}
-              if (goal === 'earn' && navigation && navigation.navigate) navigation.navigate('PerformerHome');
-              else if (goal === 'get' && navigation && navigation.navigate) navigation.navigate('PosterHome');
+                         onPress={async () => {
+               try {
+                 // Set role selection in progress to prevent redirects
+                 setIsRoleSelectionInProgress(true);
+                 console.log('🚀 RoleSelection - Complete button pressed (Mobile)');
+                 console.log('📍 Selected goal:', goal);
+                 console.log('📍 Selected user type:', userType);
+                 
+                 // Determine roles based on goal selection
+                 const roles = goal === 'earn' ? ['tasker'] : ['poster'];
+                 console.log('💾 Saving complete profile data to backend API');
+                 
+                 // Save complete profile data to backend API
+                 await api.upsertProfile({ 
+                   name: 'User', 
+                   roles,
+                   userType,
+                   agreeUpdates,
+                   agreeTerms
+                 });
+                 console.log('✅ Complete profile data saved successfully to backend API');
+                 
+                 // Refresh user data in AuthContext after saving profile
+                 await refreshUserData();
+                 console.log('✅ User data refreshed in AuthContext');
+                 
+                 // Navigate based on role selection with a small delay to ensure API call completes
+                 setTimeout(() => {
+                   console.log('🕐 RoleSelection - Starting navigation after delay');
+                   console.log('🔍 Current goal:', goal);
+                   
+                   if (goal === 'earn') {
+                     console.log('🎯 Navigating to PerformerHome (Earn Money selected)');
+                     if (navigation && navigation.navigate) {
+                       navigation.navigate('PerformerHome');
+                       console.log('✅ Navigation to PerformerHome successful');
+                     } else {
+                       console.error('❌ Navigation object not available');
+                     }
+                   } else if (goal === 'get') {
+                     console.log('🎯 Navigating to PosterHome (Get things done selected)');
+                     if (navigation && navigation.navigate) {
+                       navigation.navigate('PosterHome');
+                       console.log('✅ Navigation to PosterHome successful');
+                     } else {
+                       console.error('❌ Navigation object not available');
+                     }
+                   } else {
+                     console.error('❌ Invalid goal selection:', goal);
+                   }
+                   
+                   // Clear role selection in progress after navigation
+                   setTimeout(() => {
+                     setIsRoleSelectionInProgress(false);
+                     console.log('✅ Role selection process completed');
+                   }, 2000); // Increased delay to 2 seconds to ensure navigation logic processes updated userData
+                 }, 1000); // Increased delay to 1 second to ensure AuthContext updates
+               } catch (error) {
+                console.error('❌ Failed to save role data or navigate:', error);
+                // Still attempt navigation even if save fails
+                if (goal === 'earn' && navigation && navigation.navigate) {
+                  navigation.navigate('PerformerHome');
+                } else if (goal === 'get' && navigation && navigation.navigate) {
+                  navigation.navigate('PosterHome');
+                }
+              }
             }}
           >
             <Text style={styles.androidCompleteText}>Complete</Text>
@@ -170,11 +234,74 @@ const RoleSelectionScreen = () => {
         <TouchableOpacity
           style={[styles.completeBtn, !canComplete && { opacity: 0.5 }]}
           disabled={!canComplete}
-          onPress={async () => {
-            const roles = goal === 'earn' ? ['tasker'] : ['poster'];
-            try { await api.upsertProfile({ name: 'User', roles }); } catch {}
-            if (goal === 'earn' && navigation && navigation.navigate) navigation.navigate('PerformerHome');
-            else if (goal === 'get' && navigation && navigation.navigate) navigation.navigate('PosterHome');
+                     onPress={async () => {
+             try {
+               // Set role selection in progress to prevent redirects
+               setIsRoleSelectionInProgress(true);
+               console.log('🚀 RoleSelection - Complete button pressed (Desktop)');
+               console.log('📍 Selected goal:', goal);
+               console.log('📍 Selected user type:', userType);
+               
+               // Determine roles based on goal selection
+               const roles = goal === 'earn' ? ['tasker'] : ['poster'];
+               console.log('💾 Saving complete profile data to backend API');
+               
+               // Save complete profile data to backend API
+               await api.upsertProfile({ 
+                 name: 'User', 
+                 roles,
+                 userType,
+                 agreeUpdates,
+                 agreeTerms
+               });
+               console.log('✅ Complete profile data saved successfully to backend API');
+               
+               // Refresh user data in AuthContext after saving profile
+               await refreshUserData();
+               console.log('✅ User data refreshed in AuthContext');
+               
+               // Navigate based on role selection with a small delay to ensure API call completes
+              setTimeout(() => {
+                console.log('🕐 RoleSelection - Starting navigation after delay (Desktop)');
+                console.log('🔍 Current goal:', goal);
+                
+                if (goal === 'earn') {
+                  console.log('🎯 Navigating to PerformerHome (Earn Money selected)');
+                  if (navigation && navigation.navigate) {
+                    navigation.navigate('PerformerHome');
+                    console.log('✅ Navigation to PerformerHome successful');
+                  } else {
+                    console.error('❌ Navigation object not available');
+                  }
+                } else if (goal === 'get') {
+                  console.log('🎯 Navigating to PosterHome (Get things done selected)');
+                  if (navigation && navigation.navigate) {
+                    navigation.navigate('PosterHome');
+                    console.log('✅ Navigation to PosterHome successful');
+                  } else {
+                    console.error('❌ Navigation object not available');
+                  }
+                } else {
+                  console.error('❌ Invalid goal selection:', goal);
+                }
+                
+                // Clear role selection in progress after navigation
+                setTimeout(() => {
+                  setIsRoleSelectionInProgress(false);
+                  console.log('✅ Role selection process completed (Desktop)');
+                }, 2000); // Increased delay to 2 seconds to ensure navigation logic processes updated userData
+              }, 1000); // Increased delay to 1 second to ensure AuthContext updates
+            } catch (error) {
+              console.error('❌ Failed to save role data or navigate:', error);
+              // Clear role selection in progress on error
+              setIsRoleSelectionInProgress(false);
+              // Still attempt navigation even if save fails
+              if (goal === 'earn' && navigation && navigation.navigate) {
+                navigation.navigate('PerformerHome');
+              } else if (goal === 'get' && navigation && navigation.navigate) {
+                navigation.navigate('PosterHome');
+              }
+            }
           }}
         >
           <Text style={styles.completeText}>Complete</Text>

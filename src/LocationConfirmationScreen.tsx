@@ -1,9 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions } from 'react-native';
 import { api } from './api';
 import { useNavigation } from './SimpleNavigation';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from './firebase';
 import { useAuth } from './AuthContext';
 
 const PRIMARY_YELLOW = '#f9b233';
@@ -58,59 +56,9 @@ const LocationConfirmationScreen = () => {
     const persistAndGo = async () => {
       console.log('🚀 LocationConfirmationScreen - persistAndGo called');
       
-      // Try to save location data to Firestore, but don't block navigation if it fails
-      if (currentUser) {
-        try {
-          const locationData = {
-            address: fullAddress || areaName,
-            lat: selectedLocation?.latitude || 0,
-            lng: selectedLocation?.longitude || 0,
-            addressDetails: address,
-            selectedLocation: selectedLocation,
-            updatedAt: new Date().toISOString()
-          };
-          console.log('💾 Attempting to save location data to Firestore:', locationData);
-          
-          // Save to Firestore directly
-          const userDocRef = doc(db, 'users', currentUser.uid);
-          await updateDoc(userDocRef, {
-            location: locationData,
-            locationUpdatedAt: new Date().toISOString()
-          });
-          
-          console.log('✅ Location data saved successfully to Firestore');
-        } catch (firestoreError) {
-          console.error('❌ Failed to save location data to Firestore:', firestoreError);
-          
-          // Fallback: Try the API method
-          try {
-            const location = {
-              address: fullAddress || areaName,
-              lat: selectedLocation?.latitude || 0,
-              lng: selectedLocation?.longitude || 0,
-            } as any;
-            console.log('🔄 Trying API fallback for location save');
-            
-            const savePromise = api.upsertProfile({ name: 'User', roles: ['both'], location });
-            const timeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Save timeout')), 5000)
-            );
-            
-            await Promise.race([savePromise, timeoutPromise]);
-            console.log('✅ Location data saved successfully via API');
-          } catch (apiError) {
-            console.error('❌ Failed to save location data via API:', apiError);
-            console.log('⚠️ Continuing with navigation despite save failure');
-            Alert.alert('Warning', 'Location saved locally but failed to sync with server. You can update it later.');
-          }
-        }
-      } else {
-        console.log('⚠️ No current user, skipping location save');
-      }
-      
-      // Always attempt navigation, regardless of save success
+      // Always attempt navigation first, then save data in background
       if (navigation && navigation.navigate) {
-        console.log('🚀 LocationConfirmationScreen - Navigating to RoleSelection');
+        console.log('🚀 LocationConfirmationScreen - Navigating to RoleSelection immediately');
         try {
           navigation.navigate('RoleSelection');
           console.log('✅ Navigation to RoleSelection successful');
@@ -120,6 +68,41 @@ const LocationConfirmationScreen = () => {
       } else {
         console.log('❌ LocationConfirmationScreen - Navigation object not available');
       }
+      
+             // Try to save location data to backend API in background (non-blocking)
+       if (currentUser) {
+         // Use setTimeout to make this non-blocking
+         setTimeout(async () => {
+           try {
+             const location = {
+               address: fullAddress || areaName,
+               lat: selectedLocation?.latitude || 0,
+               lng: selectedLocation?.longitude || 0,
+               addressDetails: address, // Include detailed address breakdown
+             };
+             console.log('💾 Attempting to save location data to backend API (background):', location);
+             
+             // Save to backend API with timeout
+             const savePromise = api.upsertProfile({
+               name: 'User',
+               roles: ['both'],
+               location
+             });
+             
+             const timeoutPromise = new Promise((_, reject) => 
+               setTimeout(() => reject(new Error('API save timeout')), 10000)
+             );
+             
+             await Promise.race([savePromise, timeoutPromise]);
+             console.log('✅ Location data saved successfully via backend API');
+           } catch (apiError) {
+             console.error('❌ Failed to save location data via backend API:', apiError);
+             console.log('⚠️ Location save failed, but navigation already completed');
+           }
+         }, 100); // Small delay to ensure navigation happens first
+       } else {
+         console.log('⚠️ No current user, skipping location save');
+       }
     };
     
     console.log('⏰ LocationConfirmationScreen - Setting timer for 1 second');

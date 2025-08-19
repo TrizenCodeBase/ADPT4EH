@@ -2,8 +2,12 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
 
-// Load environment variables from .env file
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+// Load environment variables from .env file if it exists
+try {
+  require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+} catch (error) {
+  console.log('No .env file found, using default values');
+}
 
 // Debug environment variables
 console.log('🔧 Webpack Environment Variables Debug:');
@@ -11,7 +15,6 @@ console.log('REACT_APP_FIREBASE_API_KEY:', process.env.REACT_APP_FIREBASE_API_KE
 console.log('REACT_APP_FIREBASE_PROJECT_ID:', process.env.REACT_APP_FIREBASE_PROJECT_ID ? 'SET' : 'NOT SET');
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('Current directory:', __dirname);
-console.log('.env file path:', path.resolve(__dirname, '.env'));
 
 
 module.exports = {
@@ -28,6 +31,12 @@ module.exports = {
       'react-native-maps': path.resolve(__dirname, 'src/shims/react-native-maps.web.ts'),
     },
     extensions: ['.web.js', '.js', '.ts', '.tsx'],
+    fallback: {
+      "crypto": require.resolve("crypto-browserify"),
+      "stream": require.resolve("stream-browserify"),
+      "buffer": require.resolve("buffer"),
+      "path": require.resolve("path-browserify"),
+    },
   },
   module: {
     rules: [
@@ -73,8 +82,10 @@ module.exports = {
         REACT_APP_FIREBASE_MESSAGING_SENDER_ID: JSON.stringify(process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || '961487777082'),
         REACT_APP_FIREBASE_APP_ID: JSON.stringify(process.env.REACT_APP_FIREBASE_APP_ID || '1:961487777082:web:dd95fe5a7658b0e3b1f403'),
         REACT_APP_FIREBASE_MEASUREMENT_ID: JSON.stringify(process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || 'G-GXB3LSMR5B'),
-        NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'production'),
       },
+    }),
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
     }),
   ],
   devServer: {

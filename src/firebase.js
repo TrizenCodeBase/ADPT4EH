@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
@@ -12,12 +12,13 @@ import {
   signInWithPhoneNumber
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
-import { 
-  initializeFirestore,
-  doc,
-  setDoc,
-  getDoc
-} from 'firebase/firestore';
+// Note: Firestore imports removed - using backend API for data storage
+// import {
+//   initializeFirestore,
+//   doc,
+//   setDoc,
+//   getDoc
+// } from 'firebase/firestore';
 
 // Helper to bound any async by a timeout
 const withTimeout = async (promise, ms, onTimeoutReturn) => {
@@ -69,59 +70,57 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
 
-// Force XHR long-polling and disable fetch streams to avoid 400 WebChannel issues on some networks
-export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-  useFetchStreams: false,
-  // Enhanced timeout configuration for better network handling
-  timeoutSeconds: 60, // Increased from 30 to 60 seconds
-  // Enhanced retry configuration
-  retryAttempts: 5, // Increased from 3 to 5 attempts
-  // Additional settings for better connection stability
-  cacheSizeBytes: 50 * 1024 * 1024, // 50MB cache
-  ignoreUndefinedProperties: true,
-});
+// Note: Firestore initialization removed - using backend API for data storage
+// export const db = initializeFirestore(app, {
+//   experimentalForceLongPolling: true,
+//   useFetchStreams: false,
+//   timeoutSeconds: 60,
+//   retryAttempts: 5,
+//   cacheSizeBytes: 50 * 1024 * 1024,
+//   ignoreUndefinedProperties: true,
+// });
 
+// Note: Firestore connection monitoring removed - using backend API for data storage
 // Add connection state monitoring
-let isConnected = false;
-let connectionRetries = 0;
-const maxConnectionRetries = 3;
+// let isConnected = false;
+// let connectionRetries = 0;
+// const maxConnectionRetries = 3;
 
 // Monitor Firestore connection state
-if (typeof window !== 'undefined') {
-  try {
-    // Enable network connectivity monitoring
-    import('firebase/firestore').then(({ enableNetwork, disableNetwork, onSnapshot }) => {
-      // Test connection with a simple operation
-      const testConnection = async () => {
-        try {
-          console.log('🔍 Testing Firestore connection...');
-          const testDoc = doc(db, '_test', 'connection');
-          await getDoc(testDoc);
-          isConnected = true;
-          connectionRetries = 0;
-          console.log('✅ Firestore connection successful');
-        } catch (error) {
-          console.warn('⚠️ Firestore connection test failed:', error.code);
-          isConnected = false;
-          
-          if (connectionRetries < maxConnectionRetries) {
-            connectionRetries++;
-            console.log(`🔄 Retrying Firestore connection (${connectionRetries}/${maxConnectionRetries})...`);
-            setTimeout(testConnection, 2000 * connectionRetries); // Exponential backoff
-          } else {
-            console.error('❌ Firestore connection failed after max retries');
-          }
-        }
-      };
-      
-      // Test connection on initialization
-      testConnection();
-    });
-  } catch (error) {
-    console.warn('⚠️ Could not initialize Firestore connection monitoring:', error);
-  }
-}
+// if (typeof window !== 'undefined') {
+//   try {
+//     // Enable network connectivity monitoring
+//     import('firebase/firestore').then(({ enableNetwork, disableNetwork, onSnapshot }) => {
+//       // Test connection with a simple operation
+//       const testConnection = async () => {
+//         try {
+//           console.log('🔍 Testing Firestore connection...');
+//           const testDoc = doc(db, '_test', 'connection');
+//           await getDoc(testDoc);
+//           isConnected = true;
+//           connectionRetries = 0;
+//           console.log('✅ Firestore connection successful');
+//         } catch (error) {
+//           console.warn('⚠️ Firestore connection test failed:', error.code);
+//           isConnected = false;
+//           
+//           if (connectionRetries < maxConnectionRetries) {
+//             connectionRetries++;
+//             console.log(`🔄 Retrying Firestore connection (${connectionRetries}/${maxConnectionRetries})...`);
+//             setTimeout(testConnection, 2000 * connectionRetries); // Exponential backoff
+//           } else {
+//             console.error('❌ Firestore connection failed after max retries');
+//           }
+//         }
+//       };
+//       
+//       // Test connection on initialization
+//       testConnection();
+//     });
+//   } catch (error) {
+//     console.warn('⚠️ Could not initialize Firestore connection monitoring:', error);
+//   }
+// }
 
 // Initialize Analytics (only in browser environment)
 let analytics = null;
@@ -134,52 +133,11 @@ if (typeof window !== 'undefined') {
 }
 export { analytics };
 
+// Note: User profile management is now handled by the backend API
+// This function is kept for backward compatibility but does nothing
 export const ensureUserProfile = async (uid, data) => {
-  const maxRetries = 3;
-  let attempt = 0;
-  
-  while (attempt < maxRetries) {
-    try {
-      console.log(`💾 Attempting to save user profile (attempt ${attempt + 1}/${maxRetries})`);
-      
-      await setDoc(doc(db, 'users', uid), {
-        uid,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        ...data,
-      }, { merge: true });
-      
-      console.log('✅ User profile saved successfully');
-      return { success: true };
-    } catch (error) {
-      attempt++;
-      console.error(`❌ User profile save failed (attempt ${attempt}/${maxRetries}):`, error.code, error.message);
-      
-      // If it's a network error or timeout, retry
-      if (error.code === 'unavailable' || error.code === 'deadline-exceeded' || error.message.includes('timeout')) {
-        if (attempt < maxRetries) {
-          console.log(`🔄 Retrying in ${attempt * 1000}ms...`);
-          await new Promise(resolve => setTimeout(resolve, attempt * 1000));
-          continue;
-        }
-      }
-      
-      // For other errors, don't retry
-      return { 
-        success: false, 
-        code: error.code, 
-        error: error.message,
-        attempt 
-      };
-    }
-  }
-  
-  return { 
-    success: false, 
-    code: 'max-retries-exceeded', 
-    error: 'Failed after maximum retry attempts',
-    attempt 
-  };
+  console.log('ℹ️ User profile management moved to backend API - skipping Firestore operation');
+  return { success: true };
 };
 
 export const resetPassword = async (email) => {
@@ -221,32 +179,12 @@ export const signInWithEmail = async (email, password) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
 
-    // Best-effort ensure profile exists in background
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    ensureUserProfile(uid, { email });
-
-    // Best-effort read profile with enhanced timeout and error handling
-    let userData = null;
-    try {
-      console.log('📖 Attempting to read user profile...');
-      const userDoc = await withTimeout(getDoc(doc(db, 'users', uid)), 10000, { __timeout: true }); // Increased timeout to 10s
-      
-      if (userDoc && !userDoc.__timeout && userDoc.exists()) {
-        userData = userDoc.data();
-        console.log('✅ User profile read successfully');
-      } else if (userDoc.__timeout) {
-        console.warn('⚠️ User profile read timed out, proceeding without profile data');
-      } else {
-        console.log('ℹ️ User profile does not exist yet');
-      }
-    } catch (profileError) {
-      console.warn('⚠️ Failed to read user profile:', profileError.code, profileError.message);
-      // Continue without profile data - it will be created later
-    }
+    // Note: User profile data will be fetched by AuthContext from backend API
+    console.log('✅ Sign in successful - profile data will be fetched by AuthContext');
 
     return { 
       user: userCredential.user, 
-      userData,
+      userData: null, // Will be fetched by AuthContext from backend API
       success: true 
     };
   } catch (error) {
@@ -262,20 +200,14 @@ export const signInWithGoogle = async () => {
     const result = await signInWithPopup(auth, provider);
     const uid = result.user.uid;
 
-    // Background ensure profile
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    ensureUserProfile(uid, {
-      name: result.user.displayName,
-      email: result.user.email,
-      photoURL: result.user.photoURL,
-      role: 'performer',
-    });
+    // Note: User profile data will be fetched by AuthContext from backend API
+    console.log('✅ Google sign in successful - profile data will be fetched by AuthContext');
 
-    // Try read with timeout
-    const userDoc = await withTimeout(getDoc(doc(db, 'users', uid)), 5000, { __timeout: true });
-    const userData = userDoc && !userDoc.__timeout && userDoc.exists ? (userDoc.exists() ? userDoc.data() : null) : null;
-
-    return { user: result.user, userData, success: true };
+    return { 
+      user: result.user, 
+      userData: null, // Will be fetched by AuthContext from backend API
+      success: true 
+    };
   } catch (error) {
     return { error: error.message, code: error.code, success: false };
   }
@@ -322,17 +254,12 @@ export const verifyOTP = async (confirmationResult, verificationCode) => {
     const result = await confirmationResult.confirm(verificationCode);
     const uid = result.user.uid;
 
-    // Non-blocking profile ensure
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    ensureUserProfile(uid, { phoneNumber: result.user.phoneNumber, role: 'performer' });
-
-    // Try to fetch profile with timeout
-    const userDoc = await withTimeout(getDoc(doc(db, 'users', uid)), 5000, { __timeout: true });
-    const userData = userDoc && !userDoc.__timeout && userDoc.exists ? (userDoc.exists() ? userDoc.data() : null) : null;
+    // Note: User profile data will be fetched by AuthContext from backend API
+    console.log('✅ OTP verification successful - profile data will be fetched by AuthContext');
 
     return { 
       user: result.user, 
-      userData,
+      userData: null, // Will be fetched by AuthContext from backend API
       success: true 
     };
   } catch (error) {

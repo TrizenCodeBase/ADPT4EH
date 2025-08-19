@@ -219,7 +219,10 @@ const PosterHomeScreen: React.FC = () => {
         {/* Mobile Navigation Menu */}
         <View style={styles.mobileNavMenu}>
           <View style={styles.mobileNavRow}>
-            <TouchableOpacity style={styles.mobileNavButton}>
+            <TouchableOpacity 
+              style={styles.mobileNavButton}
+              onPress={() => navigation.navigate('TaskPostingForm')}
+            >
               <Text style={styles.mobileNavButtonText}>Post a Task</Text>
             </TouchableOpacity>
             <View ref={dropdownRef} style={styles.mobileDropdownContainer}>
@@ -255,15 +258,24 @@ const PosterHomeScreen: React.FC = () => {
             <TouchableOpacity style={styles.mobileNavLink}>
               <Text style={styles.mobileNavLinkText}>Benefits</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.mobileNavLink}>
+            <TouchableOpacity 
+              style={styles.mobileNavLink}
+              onPress={() => navigation.navigate('Login')}
+            >
               <Text style={styles.mobileNavLinkText}>Login</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.mobileNavLink}>
+            <TouchableOpacity 
+              style={styles.mobileNavLink}
+              onPress={() => navigation.navigate('SignUp')}
+            >
               <Text style={styles.mobileNavLinkText}>Signup</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.mobileNavRow}>
-            <TouchableOpacity style={styles.mobileNavButton}>
+            <TouchableOpacity 
+              style={styles.mobileNavButton}
+              onPress={() => navigation.navigate('PerformerHome')}
+            >
               <Text style={styles.mobileNavButtonText}>Become a Tasker</Text>
             </TouchableOpacity>
           </View>
@@ -289,7 +301,10 @@ const PosterHomeScreen: React.FC = () => {
 
           {/* Custom Task Button */}
           <View style={styles.mobileCustomTaskContainer}>
-            <TouchableOpacity style={styles.mobileCustomTaskButton}>
+            <TouchableOpacity 
+              style={styles.mobileCustomTaskButton}
+              onPress={() => navigation.navigate('TaskPostingForm')}
+            >
               <Text style={styles.mobileCustomTaskText}>Custom Task</Text>
               <Text style={styles.mobileCustomTaskIcon}>📅</Text>
             </TouchableOpacity>
@@ -493,7 +508,10 @@ const PosterHomeScreen: React.FC = () => {
 
             {/* Custom Task Button */}
             <View style={styles.desktopCustomTaskContainer}>
-              <TouchableOpacity style={styles.desktopCustomTaskButton}>
+              <TouchableOpacity 
+                style={styles.desktopCustomTaskButton}
+                onPress={() => navigation.navigate('TaskPostingForm')}
+              >
                 <Text style={styles.desktopCustomTaskText}>Custom Task</Text>
                 <Text style={styles.desktopCustomTaskIcon}>📅</Text>
               </TouchableOpacity>
