@@ -3,7 +3,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-const { GenerateSW } = require('workbox-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const webpack = require('webpack');
 
@@ -173,58 +172,6 @@ module.exports = {
       test: /\.(js|css|html|svg)$/,
       threshold: 10240,
       minRatio: 0.8,
-    }),
-    new GenerateSW({
-      clientsClaim: true,
-      skipWaiting: true,
-      maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-      runtimeCaching: [
-        {
-          urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-          handler: 'CacheFirst',
-          options: {
-            cacheName: 'google-fonts-cache',
-            expiration: {
-              maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-            },
-          },
-        },
-        {
-          urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-          handler: 'CacheFirst',
-          options: {
-            cacheName: 'gstatic-fonts-cache',
-            expiration: {
-              maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-            },
-          },
-        },
-        {
-          urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
-          handler: 'CacheFirst',
-          options: {
-            cacheName: 'images-cache',
-            expiration: {
-              maxEntries: 50,
-              maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
-            },
-          },
-        },
-        {
-          urlPattern: /^https:\/\/extrahandbackend\.llp\.trizenventures\.com\/.*/i,
-          handler: 'NetworkFirst',
-          options: {
-            cacheName: 'api-cache',
-            expiration: {
-              maxEntries: 100,
-              maxAgeSeconds: 60 * 5, // 5 minutes
-            },
-            networkTimeoutSeconds: 10,
-          },
-        },
-      ],
     }),
     ...(isAnalyze ? [new BundleAnalyzerPlugin()] : []),
   ],

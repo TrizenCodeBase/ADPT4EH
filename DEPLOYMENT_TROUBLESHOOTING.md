@@ -126,6 +126,31 @@ rm -rf node_modules/.cache
 npm run build:web
 ```
 
+### 8. GenerateSW Plugin Error
+
+**Error:**
+```
+ERROR in Please check your GenerateSW plugin configuration:
+Cannot read properties of undefined (reading 'properties')
+```
+
+**Solution:**
+```bash
+# Use the quick fix script
+chmod +x quick-fix.sh
+./quick-fix.sh
+
+# Or manually fix:
+# 1. Remove workbox dependency
+npm uninstall workbox-webpack-plugin
+
+# 2. Use simple webpack config
+npm run build:web
+
+# 3. Deploy with simple Dockerfile
+npm run build:docker:simple
+```
+
 ### 8. Nginx Configuration Issues
 
 **Error:**

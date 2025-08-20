@@ -11,11 +11,12 @@
     "web": "webpack serve --config webpack.config.js --mode development",
     "web:dev": "NODE_ENV=development webpack serve --config webpack.config.js --mode development",
     "web:prod": "NODE_ENV=production webpack serve --config webpack.config.js --mode production",
-    "build:web": "NODE_ENV=production webpack --config webpack.prod.js --mode production",
+    "build:web": "NODE_ENV=production webpack --config webpack.prod.simple.js --mode production",
     "build:web:analyze": "NODE_ENV=production webpack --config webpack.config.js --mode production --analyze",
     "build:docker": "docker build -t extrahand .",
     "build:docker:simple": "docker build --file Dockerfile.simple -t extrahand:latest .",
     "deploy": "chmod +x deploy.sh && ./deploy.sh",
+    "quick-fix": "chmod +x quick-fix.sh && ./quick-fix.sh",
     "deploy:caprover": "npm run build:web && git add . && git commit -m 'Deploy to CapRover' && git push",
     "deploy:staging": "npm run build:web:staging && git add . && git commit -m 'Deploy to Staging' && git push",
     "icons:info": "node generate-icons.js",
@@ -95,8 +96,7 @@
     "typescript": "5.0.4",
     "webpack": "^5.100.2",
     "webpack-bundle-analyzer": "^4.10.1",
-    "webpack-cli": "^6.0.1",
-    "workbox-webpack-plugin": "^7.0.0"
+    "webpack-cli": "^6.0.1"
   },
   "jest": {
     "preset": "react-native"

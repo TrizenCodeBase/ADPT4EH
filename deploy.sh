@@ -46,6 +46,7 @@ docker build \
   --build-arg REACT_APP_FIREBASE_MESSAGING_SENDER_ID="$REACT_APP_FIREBASE_MESSAGING_SENDER_ID" \
   --build-arg REACT_APP_FIREBASE_APP_ID="$REACT_APP_FIREBASE_APP_ID" \
   --build-arg REACT_APP_FIREBASE_MEASUREMENT_ID="$REACT_APP_FIREBASE_MEASUREMENT_ID" \
+  --progress=plain \
   -t extrahand:latest .
 
 echo "✅ Docker image built successfully"
