@@ -2,18 +2,23 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
 
-// Load environment variables from .env file if it exists
+// Load environment variables from appropriate .env file
+const isProduction = process.env.NODE_ENV === 'production';
+const envFile = isProduction ? 'env.production' : 'env.development';
+
 try {
-  require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+  require('dotenv').config({ path: path.resolve(__dirname, envFile) });
 } catch (error) {
-  console.log('No .env file found, using default values');
+  console.log(`No ${envFile} file found, using default values`);
 }
 
 // Debug environment variables
 console.log('🔧 Webpack Environment Variables Debug:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('REACT_APP_ENV:', process.env.REACT_APP_ENV);
 console.log('REACT_APP_FIREBASE_API_KEY:', process.env.REACT_APP_FIREBASE_API_KEY ? 'SET' : 'NOT SET');
 console.log('REACT_APP_FIREBASE_PROJECT_ID:', process.env.REACT_APP_FIREBASE_PROJECT_ID ? 'SET' : 'NOT SET');
-console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('REACT_APP_API_BASE_URL:', process.env.REACT_APP_API_BASE_URL);
 console.log('Current directory:', __dirname);
 
 

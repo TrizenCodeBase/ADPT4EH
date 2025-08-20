@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, ScrollView, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, ScrollView, Platform, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
+import { useAuth } from './AuthContext';
+import { api } from './api';
 import Footer from './Footer';
+import MobileNavBar from './components/MobileNavBar';
 
 const PRIMARY_YELLOW = '#f9b233';
 const PRIMARY_BLUE = '#2563eb';
@@ -11,172 +14,134 @@ const categories = [
   "Accountants", "Admin", "Alterations", "Appliances", "Assembly", "Auto Electricians", "Bakers", "Barbers", "Beauticians", "Bicycle Service", "Bricklaying", "Building & Construction", "Business", "Car Body Work", "Car Detailing", "Car Repair", "Car Service", "Carpentry", "Cat Care", "Catering", "Chef", "Cladding", "Cleaning", "Computers & IT", "Concreting", "Decking", "Delivery", "Design", "Dog Care", "Draftsman", "Driving", "Electricians", "Entertainment", "Events", "Fencing", "Flooring", "Florist", "Furniture Assembly", "Gardening", "Gate Installation", "Hairdressers", "Handyman", "Heating & Cooling", "Home", "Automation And Security", "Home Theatre", "Interior Designer", "Landscaping", "Laundry", "Lawn Care", "Lessons", "Locksmith", "Makeup Artist", "Marketing", "Mobile Mechanic", "Painting", "Paving", "Pet Care", "Photographers", "Plasterer", "Plumbing", "Pool Maintenance", "Removals", "Roofing", "Sharpening", "Staffing", "Tailors", "Tattoo Artists", "Tiling", "Tradesman", "Tutoring", "Wall Hanging & Mounting", "Wallpapering", "Waterproofing", "Web", "Wheel & Tyre Service", "Writing"
 ];
 
-const dummyTasks = [
-  {
-    id: 1,
-    title: 'Replace a kitchen tap',
-    location: 'Paradise SA, Australia',
-    date: 'Tomorrow',
-    time: 'Anytime',
-    price: 'RS 249',
-    budget: '₹249',
-    status: 'Open',
-    poster: 'Myint K.',
-    postedTime: '7 minutes ago',
-    dueDate: 'Before Wed, 23 Jul',
-    dueTime: 'Anytime',
-    description: 'Replace a kitchen tap. Tap provided.',
-    images: [
-      'https://via.placeholder.com/300x200/4A90E2/FFFFFF?text=New+Tap',
-      'https://via.placeholder.com/300x200/7ED321/FFFFFF?text=Existing+Sink'
-    ],
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-  },
-  {
-    id: 2,
-    title: 'Plumber (leakage fix, pipe installation, bathroom fitting)',
-    location: 'Hyderabad, India',
-    date: 'Before 14 July',
-    time: 'Anytime',
-    price: 'RS 149',
-    budget: '₹149',
-    status: 'Open',
-    poster: 'Rajesh S.',
-    postedTime: '15 minutes ago',
-    dueDate: 'Before Mon, 14 Jul',
-    dueTime: 'Flexible',
-    description: 'Need a professional plumber for leakage fix, pipe installation, and bathroom fitting. Multiple tasks to be completed.',
-    images: [
-      'https://via.placeholder.com/300x200/FF6B6B/FFFFFF?text=Leaking+Pipe',
-    ],
-    avatar: 'https://randomuser.me/api/portraits/men/45.jpg',
-  },
-  {
-    id: 3,
-    title: 'Home Deep Cleaning',
-    location: 'Basheerbagh, India',
-    date: 'Tomorrow',
-    time: 'Anytime',
-    price: 'RS 249',
-    budget: '₹249',
-    status: 'Open',
-    poster: 'Priya M.',
-    postedTime: '1 hour ago',
-    dueDate: 'Tomorrow',
-    dueTime: 'Anytime',
-    description: 'Deep cleaning required for 3BHK apartment. All rooms, kitchen, and bathrooms.',
-    images: [],
-    avatar: 'https://randomuser.me/api/portraits/men/46.jpg',
-  },
-  {
-    id: 4,
-    title: 'Sofa & Carpet Cleaning',
-    location: 'Hyderabad, India',
-    date: 'Flexible',
-    time: '',
-    price: 'RS 560',
-    budget: '₹560',
-    status: 'Open',
-    poster: 'Kumar R.',
-    postedTime: '2 hours ago',
-    dueDate: 'Flexible',
-    dueTime: 'Anytime',
-    description: 'Professional cleaning needed for 3-seater sofa and large carpet in living room.',
-    images: [],
-    avatar: 'https://randomuser.me/api/portraits/men/47.jpg',
-  },
-  {
-    id: 5,
-    title: 'Flyer drop in Northgate area',
-    location: 'Northgate SA, Australia',
-    date: 'Before Mon, 4 Aug',
-    time: 'Anytime',
-    price: '$100',
-    budget: '$100',
-    status: 'Open',
-    poster: 'Sarah L.',
-    postedTime: '3 hours ago',
-    dueDate: 'Before Mon, 4 Aug',
-    dueTime: 'Anytime',
-    description: 'Need someone to distribute promotional flyers in the Northgate residential area.',
-    images: [],
-    avatar: 'https://randomuser.me/api/portraits/women/32.jpg',
-  },
-  {
-    id: 6,
-    title: 'I need to do gyprock fixing',
-    location: 'Enfield SA, Australia',
-    date: 'Today',
-    time: 'Anytime',
-    price: '$50',
-    budget: '$50',
-    status: 'Open',
-    poster: 'Mike D.',
-    postedTime: '4 hours ago',
-    dueDate: 'Today',
-    dueTime: 'Anytime',
-    description: 'Small gyprock repair needed in bedroom wall. Hole needs to be patched and painted.',
-    images: [],
-    avatar: 'https://randomuser.me/api/portraits/men/48.jpg',
-  },
-  {
-    id: 7,
-    title: 'Flyer drop',
-    location: 'Northgate SA, Australia',
-    date: 'Before Mon, 4 Aug',
-    time: 'Anytime',
-    price: '$100',
-    budget: '$100',
-    status: 'Open',
-    poster: 'Emma W.',
-    postedTime: '5 hours ago',
-    dueDate: 'Before Mon, 4 Aug',
-    dueTime: 'Anytime',
-    description: 'Distribute business flyers in residential areas. Must cover specified streets.',
-    images: [],
-    avatar: 'https://randomuser.me/api/portraits/women/32.jpg',
-  },
-  {
-    id: 8,
-    title: 'Social Media Assistant (Remote)',
-    location: 'Adelaide SA, Australia',
-    date: 'Flexible',
-    time: 'Remote',
-    price: '$200',
-    budget: '$200',
-    status: 'Open',
-    poster: 'Jessica T.',
-    postedTime: '6 hours ago',
-    dueDate: 'Flexible',
-    dueTime: 'Remote work',
-    description: 'Need help managing social media accounts, creating content, and engaging with followers.',
-    images: [],
-    avatar: 'https://randomuser.me/api/portraits/women/45.jpg',
-  },
-];
+// Utility function to format time ago
+const formatTimeAgo = (timestamp: number) => {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / (1000 * 60));
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  return `${days} day${days > 1 ? 's' : ''} ago`;
+};
+
+// Utility function to format budget
+const formatBudget = (budget: any) => {
+  if (!budget) return '₹0';
+  const amount = budget.amount || budget;
+  const currency = budget.currency || 'INR';
+  return `${currency === 'INR' ? '₹' : '$'}${amount}`;
+};
+
+// Utility function to get default avatar
+const getDefaultAvatar = (name: string) => {
+  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=random&color=fff&size=100`;
+};
 
 const PerformerHomeScreen = () => {
   const navigation = useNavigation();
+  const { currentUser, userData } = useAuth();
   const [isMobileView, setIsMobileView] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
-  const [selectedTask, setSelectedTask] = useState(dummyTasks[0]); // Default to first task
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<any>(null);
+
+  // Fetch tasks from database
+  const fetchTasks = async (filters?: any) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const params = {
+        status: 'open',
+        limit: '50',
+        ...filters
+      };
+
+      // If user is logged in, get recommended tasks
+      if (currentUser && userData) {
+        params.recommend = 'true';
+      }
+
+      const response = await api.getTasks(params);
+      const fetchedTasks = response.tasks || response || [];
+      
+      // Transform tasks to match the expected format
+      const transformedTasks = fetchedTasks.map((task: any) => ({
+        id: task.id,
+        title: task.title || task.description?.split('\n')[0] || 'Untitled Task',
+        location: task.location?.address || 'Location not specified',
+        date: task.preferredTime?.startDate ? new Date(task.preferredTime.startDate).toLocaleDateString() : 'Flexible',
+        time: task.preferredTime?.timeSlots?.join(', ') || 'Anytime',
+        price: formatBudget(task.budget),
+        budget: formatBudget(task.budget),
+        status: task.status || 'Open',
+        poster: task.creator?.name || 'Anonymous',
+        postedTime: formatTimeAgo(task.createdAt),
+        dueDate: task.preferredTime?.endDate ? new Date(task.preferredTime.endDate).toLocaleDateString() : 'Flexible',
+        dueTime: task.preferredTime?.timeSlots?.join(', ') || 'Anytime',
+        description: task.description || 'No description provided',
+        images: task.images || [],
+        avatar: task.creator?.photoURL || getDefaultAvatar(task.creator?.name || 'Anonymous'),
+        type: task.type,
+        skillsRequired: task.skillsRequired || [],
+        isUrgent: task.isUrgent || false,
+        views: task.views || 0,
+        applications: task.applications || 0
+      }));
+
+      setTasks(transformedTasks);
+      
+      // Set first task as selected for desktop view
+      if (transformedTasks.length > 0 && !selectedTask) {
+        setSelectedTask(transformedTasks[0]);
+      }
+    } catch (err: any) {
+      console.error('Error fetching tasks:', err);
+      setError(err.message || 'Failed to load tasks');
+      // Fallback to empty array
+      setTasks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter tasks based on search and category
+  const filteredTasks = tasks.filter(task => {
+    const matchesSearch = !searchQuery || 
+      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.location.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesCategory = !selectedCategory || task.type === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   // Handle category selection
   const handleCategoryClick = (category: string) => {
     console.log(`Selected category: ${category}`);
+    setSelectedCategory(category === selectedCategory ? null : category);
     setShowCategories(false);
-    // Prevent default navigation behavior
     return false;
   };
 
   // Handle task card click
-  const handleTaskClick = (taskId: number) => {
+  const handleTaskClick = (taskId: string) => {
     if (isMobileView) {
-      navigation.navigate('TaskDetails');
+      navigation.navigate('TaskDetails', { taskId });
     } else {
       // For desktop, update the selected task to show in right panel
-      const task = dummyTasks.find(t => t.id === taskId);
+      const task = tasks.find(t => t.id === taskId);
       if (task) {
         setSelectedTask(task);
       }
@@ -184,12 +149,12 @@ const PerformerHomeScreen = () => {
   };
 
   // Handle open button click
-  const handleOpenClick = (taskId: number) => {
+  const handleOpenClick = (taskId: string) => {
     if (isMobileView) {
-      navigation.navigate('TaskDetails');
+      navigation.navigate('TaskDetails', { taskId });
     } else {
       // For desktop, update the selected task to show in right panel
-      const task = dummyTasks.find(t => t.id === taskId);
+      const task = tasks.find(t => t.id === taskId);
       if (task) {
         setSelectedTask(task);
       }
@@ -198,8 +163,29 @@ const PerformerHomeScreen = () => {
 
   // Handle make offer button click
   const handleMakeOffer = () => {
-    navigation.navigate('MakeOfferDetails');
+    if (!currentUser) {
+      Alert.alert('Login Required', 'Please login to make an offer');
+      return;
+    }
+    navigation.navigate('MakeOfferDetails', { taskId: selectedTask?.id });
   };
+
+  // Handle search
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  // Clear filters
+  const clearFilters = () => {
+    setSelectedCategory(null);
+    setSearchQuery('');
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchTasks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Check if we're on mobile web view
   useEffect(() => {
@@ -239,140 +225,113 @@ const PerformerHomeScreen = () => {
   if (isMobileView) {
     return (
       <View style={styles.mobileContainer}>
-        {/* Header */}
-        <View style={styles.mobileHeader}>
-          <View style={styles.mobileLocationContainer}>
-            <Text style={styles.mobileLocationTitle}>Hyderabad Deccan Railway Station</Text>
-            <Text style={styles.mobileLocationSubtitle}>Red Hills-Malakpet-Hyderabad...</Text>
+        {/* Development Mode Indicator */}
+        {process.env.NODE_ENV === 'development' && (
+          <View style={{ backgroundColor: '#ff6b6b', padding: 8, alignItems: 'center' }}>
+            <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
+              🛠️ DEVELOPMENT MODE - Using Mock Data
+            </Text>
           </View>
-          <View style={styles.mobileLogoCircle}>
-            <Image source={require('../assets/images/logo.png')} style={styles.mobileLogoImage} />
-          </View>
-        </View>
-
-        {/* Mobile Navigation Menu */}
-        <View style={styles.mobileNavMenu}>
-          <View style={styles.mobileNavRow}>
-            <TouchableOpacity style={styles.mobileNavButton}>
-              <Text style={styles.mobileNavButtonText}>Post a Task</Text>
-            </TouchableOpacity>
-            <View ref={dropdownRef} style={styles.mobileDropdownContainer}>
-              <TouchableOpacity 
-                style={styles.mobileNavLink}
-                onPress={() => setShowCategories(!showCategories)}
-              >
-                <Text style={styles.mobileNavLinkText}>Browse Tasks</Text>
-              </TouchableOpacity>
-              {showCategories && (
-                <View style={styles.mobileCategoriesDropdown}>
-                  <View style={styles.mobileDropdownContent}>
-                    <View style={styles.mobileDropdownColumn}>
-                      {categories.map((cat) => (
-                        <View 
-                          key={cat} 
-                          style={styles.mobileDropdownItem} 
-                          onTouchEnd={() => handleCategoryClick(cat)}
-                        >
-                          <Text style={styles.mobileDropdownItemText}>{cat}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                </View>
-              )}
-            </View>
-          </View>
-          <View style={styles.mobileNavRow}>
-            <TouchableOpacity style={styles.mobileNavLink}>
-              <Text style={styles.mobileNavLinkText}>How it works</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.mobileNavLink}>
-              <Text style={styles.mobileNavLinkText}>Benefits</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.mobileNavLink}>
-              <Text style={styles.mobileNavLinkText}>Login</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.mobileNavLink}>
-              <Text style={styles.mobileNavLinkText}>Signup</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.mobileNavRow}>
-            <TouchableOpacity style={styles.mobileNavButton}>
-              <Text style={styles.mobileNavButtonText}>Become a Tasker</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        )}
+        
+        {/* Mobile Navigation Bar */}
+        <MobileNavBar />
 
         {/* Search and Filters */}
         <View style={styles.mobileSearchRow}>
           <View style={styles.mobileSearchContainer}>
             <Text style={styles.mobileSearchIcon}>🔍</Text>
-            <TextInput style={styles.mobileSearchInput} placeholder="Search for a task" />
+            <TextInput 
+              style={styles.mobileSearchInput} 
+              placeholder="Search for a task" 
+              value={searchQuery}
+              onChangeText={handleSearch}
+            />
           </View>
-          <TouchableOpacity style={styles.mobileFilterBtn}>
-            <Text style={styles.mobileFilterText}>Category ▼</Text>
+          <TouchableOpacity 
+            style={[styles.mobileFilterBtn, selectedCategory && styles.mobileFilterBtnActive]}
+            onPress={() => setShowCategories(!showCategories)}
+          >
+            <Text style={[styles.mobileFilterText, selectedCategory && styles.mobileFilterTextActive]}>
+              {selectedCategory || 'Category'} {selectedCategory ? '✓' : '▼'}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.mobileFilterBtn}>
-            <Text style={styles.mobileFilterText}>100km + Hyderabad ▼</Text>
+          <TouchableOpacity 
+            style={styles.mobileFilterBtn}
+            onPress={() => fetchTasks()}
+          >
+            <Text style={styles.mobileFilterText}>🔄</Text>
           </TouchableOpacity>
         </View>
+        {(selectedCategory || searchQuery) && (
+          <View style={styles.mobileFilterRow}>
+            <TouchableOpacity 
+              style={styles.mobileClearFilterBtn}
+              onPress={clearFilters}
+            >
+              <Text style={styles.mobileClearFilterText}>✕ Clear filters</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Task List */}
         <ScrollView style={styles.mobileTaskList} contentContainerStyle={{ paddingBottom: 100 }}>
-          {dummyTasks.map(task => (
-            <TouchableOpacity 
-              key={task.id} 
-              style={styles.mobileTaskCard}
-              onPress={() => handleTaskClick(task.id)}
-            >
-              <View style={styles.mobileTaskContent}>
-                <View style={styles.mobileTaskLeft}>
-                  <Text style={styles.mobileTaskTitle}>{task.title}</Text>
-                  <View style={styles.mobileTaskMetaRow}>
-                    <Text style={styles.mobileTaskMeta}>📍 {task.location}</Text>
-                    <Text style={styles.mobileTaskMeta}>📅 {task.date}</Text>
-                    {task.time ? <Text style={styles.mobileTaskMeta}>⏰ {task.time}</Text> : null}
-                  </View>
-                  <Text style={styles.mobileTaskStatus}>{task.status}</Text>
-                </View>
-                <View style={styles.mobileTaskRight}>
-                  <Text style={styles.mobileTaskPrice}>{task.price}</Text>
-                  <Image source={{ uri: task.avatar }} style={styles.mobileAvatar} />
-                </View>
-              </View>
+          {loading ? (
+            <ActivityIndicator size="large" color={PRIMARY_BLUE} style={{ marginTop: 50 }} />
+          ) : error ? (
+            <View style={{ alignItems: 'center', marginTop: 50 }}>
+              <Text style={{ textAlign: 'center', color: 'red', marginBottom: 10 }}>{error}</Text>
               <TouchableOpacity 
-                style={styles.mobileOpenButton}
-                onPress={() => handleOpenClick(task.id)}
+                style={{ backgroundColor: PRIMARY_BLUE, padding: 10, borderRadius: 8 }}
+                onPress={() => fetchTasks()}
               >
-                <Text style={styles.mobileOpenButtonText}>Open</Text>
+                <Text style={{ color: 'white' }}>Retry</Text>
               </TouchableOpacity>
-            </TouchableOpacity>
-          ))}
+            </View>
+          ) : filteredTasks.length === 0 ? (
+            <View style={{ alignItems: 'center', marginTop: 50 }}>
+              <Text style={{ textAlign: 'center', marginBottom: 10 }}>No tasks found matching your criteria.</Text>
+              <TouchableOpacity 
+                style={{ backgroundColor: PRIMARY_BLUE, padding: 10, borderRadius: 8 }}
+                onPress={() => fetchTasks()}
+              >
+                <Text style={{ color: 'white' }}>Refresh</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            filteredTasks.map(task => (
+              <TouchableOpacity 
+                key={task.id} 
+                style={styles.mobileTaskCard}
+                onPress={() => handleTaskClick(task.id)}
+              >
+                <View style={styles.mobileTaskContent}>
+                  <View style={styles.mobileTaskLeft}>
+                    <Text style={styles.mobileTaskTitle}>{task.title}</Text>
+                    <View style={styles.mobileTaskMetaRow}>
+                      <Text style={styles.mobileTaskMeta}>📍 {task.location}</Text>
+                      <Text style={styles.mobileTaskMeta}>📅 {task.date}</Text>
+                      {task.time ? <Text style={styles.mobileTaskMeta}>⏰ {task.time}</Text> : null}
+                    </View>
+                    <Text style={styles.mobileTaskStatus}>{task.status}</Text>
+                  </View>
+                  <View style={styles.mobileTaskRight}>
+                    <Text style={styles.mobileTaskPrice}>{task.price}</Text>
+                    <Image source={{ uri: task.avatar }} style={styles.mobileAvatar} />
+                  </View>
+                </View>
+                <TouchableOpacity 
+                  style={styles.mobileOpenButton}
+                  onPress={() => handleOpenClick(task.id)}
+                >
+                  <Text style={styles.mobileOpenButtonText}>Open</Text>
+                </TouchableOpacity>
+              </TouchableOpacity>
+            ))
+          )}
         </ScrollView>
 
-        {/* Bottom Navigation */}
-        <View style={styles.mobileBottomNav}>
-          <TouchableOpacity style={[styles.mobileNavItem, styles.mobileNavActive]}>
-            <Text style={[styles.mobileNavIcon, styles.mobileNavIconActive]}>⌂</Text>
-            <Text style={[styles.mobileNavLabel, styles.mobileNavLabelActive]}>Home</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.mobileNavItem}>
-            <Text style={styles.mobileNavIcon}>☐</Text>
-            <Text style={styles.mobileNavLabel}>Tasks</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.mobileNavItem}>
-            <Text style={styles.mobileNavIcon}>＋</Text>
-            <Text style={styles.mobileNavLabel}>Post / Discover</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.mobileNavItem}>
-            <Text style={styles.mobileNavIcon}>○</Text>
-            <Text style={styles.mobileNavLabel} onPress={() => navigation.navigate('Chat')}>Chat</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.mobileNavItem}>
-            <Text style={styles.mobileNavIcon}>⚪</Text>
-            <Text style={styles.mobileNavLabel}>Account</Text>
-          </TouchableOpacity>
-        </View>
+
       </View>
     );
   }
@@ -380,6 +339,14 @@ const PerformerHomeScreen = () => {
   // Desktop web layout (new implementation based on reference image)
   return (
     <View style={styles.desktopContainer}>
+      {/* Development Mode Indicator */}
+      {process.env.NODE_ENV === 'development' && (
+        <View style={{ backgroundColor: '#ff6b6b', padding: 8, alignItems: 'center' }}>
+          <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
+            🛠️ DEVELOPMENT MODE - Using Mock Data
+          </Text>
+        </View>
+      )}
       {/* Header */}
       <View style={styles.desktopHeader}>
         <View style={styles.desktopHeaderContent}>
@@ -446,7 +413,10 @@ const PerformerHomeScreen = () => {
             >
               <Text style={styles.desktopMenuLinkText}>Chat</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.desktopProfileButton}>
+            <TouchableOpacity 
+              style={styles.desktopProfileButton}
+              onPress={() => navigation.navigate('Profile')}
+            >
               <Text style={styles.desktopProfileIcon}>👤</Text>
             </TouchableOpacity>
           </View>
@@ -457,7 +427,12 @@ const PerformerHomeScreen = () => {
       <View style={styles.desktopFilterSection}>
         <View style={styles.desktopSearchContainer}>
           <Text style={styles.desktopSearchIcon}>🔍</Text>
-          <TextInput style={styles.desktopSearchInput} placeholder="Search for a task" />
+          <TextInput 
+            style={styles.desktopSearchInput} 
+            placeholder="Search for a task" 
+            value={searchQuery}
+            onChangeText={handleSearch}
+          />
         </View>
         <View style={styles.desktopFilterRow}>
           <TouchableOpacity style={styles.desktopFilterButton}>
@@ -475,6 +450,12 @@ const PerformerHomeScreen = () => {
           <TouchableOpacity style={styles.desktopFilterButton}>
             <Text style={styles.desktopFilterText}>Sort</Text>
           </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.desktopFilterButton}
+            onPress={() => fetchTasks()}
+          >
+            <Text style={styles.desktopFilterText}>🔄 Refresh</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -490,38 +471,46 @@ const PerformerHomeScreen = () => {
             showsVerticalScrollIndicator={true}
             contentContainerStyle={styles.desktopTaskListContent}
           >
-            {dummyTasks.map(task => (
-              <TouchableOpacity 
-                key={task.id} 
-                style={[
-                  styles.desktopTaskCard,
-                  selectedTask.id === task.id && styles.desktopTaskCardSelected
-                ]}
-                onPress={() => handleTaskClick(task.id)}
-              >
-                <View style={styles.desktopTaskContent}>
-                  <View style={styles.desktopTaskLeft}>
-                    <Text style={styles.desktopTaskTitle}>{task.title}</Text>
-                    <View style={styles.desktopTaskMetaRow}>
-                      <Text style={styles.desktopTaskMeta}>📍 {task.location}</Text>
-                      <Text style={styles.desktopTaskMeta}>📅 {task.date}</Text>
-                      {task.time ? <Text style={styles.desktopTaskMeta}>⏰ {task.time}</Text> : null}
-                    </View>
-                    <Text style={styles.desktopTaskStatus}>{task.status}</Text>
-                  </View>
-                  <View style={styles.desktopTaskRight}>
-                    <Text style={styles.desktopTaskPrice}>{task.price}</Text>
-                    <Image source={{ uri: task.avatar }} style={styles.desktopAvatar} />
-                  </View>
-                </View>
+            {loading ? (
+              <ActivityIndicator size="large" color={PRIMARY_BLUE} style={{ marginTop: 50 }} />
+            ) : error ? (
+              <Text style={{ textAlign: 'center', marginTop: 50, color: 'red' }}>{error}</Text>
+            ) : filteredTasks.length === 0 ? (
+              <Text style={{ textAlign: 'center', marginTop: 50 }}>No tasks found matching your criteria.</Text>
+            ) : (
+              filteredTasks.map(task => (
                 <TouchableOpacity 
-                  style={styles.desktopOpenButton}
-                  onPress={() => handleOpenClick(task.id)}
+                  key={task.id} 
+                  style={[
+                    styles.desktopTaskCard,
+                    selectedTask?.id === task.id && styles.desktopTaskCardSelected
+                  ]}
+                  onPress={() => handleTaskClick(task.id)}
                 >
-                  <Text style={styles.desktopOpenButtonText}>Open</Text>
+                  <View style={styles.desktopTaskContent}>
+                    <View style={styles.desktopTaskLeft}>
+                      <Text style={styles.desktopTaskTitle}>{task.title}</Text>
+                      <View style={styles.desktopTaskMetaRow}>
+                        <Text style={styles.desktopTaskMeta}>📍 {task.location}</Text>
+                        <Text style={styles.desktopTaskMeta}>📅 {task.date}</Text>
+                        {task.time ? <Text style={styles.desktopTaskMeta}>⏰ {task.time}</Text> : null}
+                      </View>
+                      <Text style={styles.desktopTaskStatus}>{task.status}</Text>
+                    </View>
+                    <View style={styles.desktopTaskRight}>
+                      <Text style={styles.desktopTaskPrice}>{task.price}</Text>
+                      <Image source={{ uri: task.avatar }} style={styles.desktopAvatar} />
+                    </View>
+                  </View>
+                  <TouchableOpacity 
+                    style={styles.desktopOpenButton}
+                    onPress={() => handleOpenClick(task.id)}
+                  >
+                    <Text style={styles.desktopOpenButtonText}>Open</Text>
+                  </TouchableOpacity>
                 </TouchableOpacity>
-              </TouchableOpacity>
-            ))}
+              ))
+            )}
           </ScrollView>
         </View>
 
@@ -536,17 +525,17 @@ const PerformerHomeScreen = () => {
               {/* Status Badge */}
               <View style={styles.desktopTaskDetailsStatusContainer}>
                 <View style={styles.desktopTaskDetailsStatusBadge}>
-                  <Text style={styles.desktopTaskDetailsStatusText}>{selectedTask.status}</Text>
+                  <Text style={styles.desktopTaskDetailsStatusText}>{selectedTask?.status}</Text>
                 </View>
               </View>
 
               {/* Task Title */}
-              <Text style={styles.desktopTaskDetailsTaskTitle}>{selectedTask.title}</Text>
+              <Text style={styles.desktopTaskDetailsTaskTitle}>{selectedTask?.title}</Text>
 
               {/* Price and Make Offer Section */}
               <View style={styles.desktopTaskDetailsPriceCard}>
                 <Text style={styles.desktopTaskDetailsPriceLabel}>Task Budget</Text>
-                <Text style={styles.desktopTaskDetailsPriceAmount}>{selectedTask.budget}</Text>
+                <Text style={styles.desktopTaskDetailsPriceAmount}>{selectedTask?.budget}</Text>
                 <TouchableOpacity style={styles.desktopTaskDetailsMakeOfferButton} onPress={handleMakeOffer}>
                   <Text style={styles.desktopTaskDetailsMakeOfferText}>Make an offer</Text>
                 </TouchableOpacity>
@@ -560,13 +549,13 @@ const PerformerHomeScreen = () => {
                   <View style={styles.desktopTaskDetailsInfoRow}>
                     <View style={styles.desktopTaskDetailsInfoIcon}>
                       <View style={styles.desktopTaskDetailsPosterAvatar}>
-                        <Text style={styles.desktopTaskDetailsPosterInitial}>{selectedTask.poster.charAt(0)}</Text>
+                        <Text style={styles.desktopTaskDetailsPosterInitial}>{selectedTask?.poster?.charAt(0) || '?'}</Text>
                       </View>
                     </View>
                     <View style={styles.desktopTaskDetailsInfoContent}>
                       <Text style={styles.desktopTaskDetailsInfoLabel}>Posted by</Text>
-                      <Text style={styles.desktopTaskDetailsInfoValue}>{selectedTask.poster}</Text>
-                      <Text style={styles.desktopTaskDetailsInfoSubtext}>{selectedTask.postedTime}</Text>
+                      <Text style={styles.desktopTaskDetailsInfoValue}>{selectedTask?.poster || 'Anonymous'}</Text>
+                      <Text style={styles.desktopTaskDetailsInfoSubtext}>{selectedTask?.postedTime}</Text>
                     </View>
                   </View>
                 </View>
@@ -579,7 +568,7 @@ const PerformerHomeScreen = () => {
                     </View>
                     <View style={styles.desktopTaskDetailsInfoContent}>
                       <Text style={styles.desktopTaskDetailsInfoLabel}>Location</Text>
-                      <Text style={styles.desktopTaskDetailsInfoValue}>{selectedTask.location}</Text>
+                      <Text style={styles.desktopTaskDetailsInfoValue}>{selectedTask?.location}</Text>
                     </View>
                   </View>
                 </View>
@@ -592,8 +581,8 @@ const PerformerHomeScreen = () => {
                     </View>
                     <View style={styles.desktopTaskDetailsInfoContent}>
                       <Text style={styles.desktopTaskDetailsInfoLabel}>Due date</Text>
-                      <Text style={styles.desktopTaskDetailsInfoValue}>{selectedTask.dueDate}</Text>
-                      <Text style={styles.desktopTaskDetailsInfoSubtext}>{selectedTask.dueTime}</Text>
+                      <Text style={styles.desktopTaskDetailsInfoValue}>{selectedTask?.dueDate}</Text>
+                      <Text style={styles.desktopTaskDetailsInfoSubtext}>{selectedTask?.dueTime}</Text>
                     </View>
                   </View>
                 </View>
@@ -603,15 +592,15 @@ const PerformerHomeScreen = () => {
               {/* Task Description */}
               <View style={styles.desktopTaskDetailsDescriptionCard}>
                 <Text style={styles.desktopTaskDetailsDescriptionTitle}>What you need to do</Text>
-                <Text style={styles.desktopTaskDetailsDescriptionText}>{selectedTask.description}</Text>
+                <Text style={styles.desktopTaskDetailsDescriptionText}>{selectedTask?.description}</Text>
               </View>
 
               {/* Task Images */}
-              {selectedTask.images && selectedTask.images.length > 0 && (
+              {selectedTask?.images && selectedTask.images.length > 0 && (
                 <View style={styles.desktopTaskDetailsImagesCard}>
                   <Text style={styles.desktopTaskDetailsImagesTitle}>Photos</Text>
                   <View style={styles.desktopTaskDetailsImageGrid}>
-                    {selectedTask.images.map((image, index) => (
+                    {selectedTask.images.map((image: string, index: number) => (
                       <View key={index} style={styles.desktopTaskDetailsImageContainer}>
                         <View style={styles.desktopTaskDetailsImagePlaceholder}>
                           <Text style={styles.desktopTaskDetailsImageText}>Photo {index + 1}</Text>
@@ -1350,6 +1339,36 @@ const styles = StyleSheet.create({
   },
   mobileNavLabelActive: {
     color: DARK,
+    fontWeight: '500',
+  },
+  mobileFilterBtnActive: {
+    backgroundColor: PRIMARY_BLUE,
+    borderColor: PRIMARY_BLUE,
+  },
+  mobileFilterTextActive: {
+    color: '#fff',
+  },
+  mobileFilterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    gap: 8,
+  },
+  mobileClearFilterBtn: {
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  mobileClearFilterText: {
+    color: '#dc2626',
+    fontSize: 12,
     fontWeight: '500',
   },
 });

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
 import Footer from './Footer';
+import MobileNavBar from './components/MobileNavBar';
 
 
 
@@ -190,96 +191,8 @@ const PosterHomeScreen: React.FC = () => {
   if (isMobileView) {
     return (
       <View style={styles.mobileContainer}>
-        {/* Header */}
-        <View style={styles.mobileHeader}>
-          <View style={styles.mobileHeaderTop}>
-            <View style={styles.mobileLocationContainer}>
-              <Text style={styles.mobileLocationText}>Hyderabad Decan Railway Station</Text>
-              <Text style={styles.mobileLocationSubtext}>Red Hills-Malakpet-Hyderaba...</Text>
-              <Text style={styles.mobileLocationArrow}>▼</Text>
-            </View>
-            <TouchableOpacity style={styles.mobileCartButton}>
-              <Text style={styles.mobileCartIcon}>🛒</Text>
-            </TouchableOpacity>
-          </View>
-          
-          {/* Search Bar */}
-          <View style={styles.mobileSearchContainer}>
-            <Text style={styles.mobileSearchIcon}>🔍</Text>
-            <TextInput
-              style={styles.mobileSearchInput}
-              placeholder="Search for"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholderTextColor="#999"
-            />
-          </View>
-        </View>
-
-        {/* Mobile Navigation Menu */}
-        <View style={styles.mobileNavMenu}>
-          <View style={styles.mobileNavRow}>
-            <TouchableOpacity 
-              style={styles.mobileNavButton}
-              onPress={() => navigation.navigate('TaskPostingForm')}
-            >
-              <Text style={styles.mobileNavButtonText}>Post a Task</Text>
-            </TouchableOpacity>
-            <View ref={dropdownRef} style={styles.mobileDropdownContainer}>
-              <TouchableOpacity 
-                style={styles.mobileNavLink}
-                onPress={() => setShowCategories(!showCategories)}
-              >
-                <Text style={styles.mobileNavLinkText}>Browse Tasks</Text>
-              </TouchableOpacity>
-              {showCategories && (
-                <View style={styles.mobileCategoriesDropdown}>
-                  <View style={styles.mobileDropdownContent}>
-                    <View style={styles.mobileDropdownColumn}>
-                      {categories.map((cat) => (
-                        <View 
-                          key={cat} 
-                          style={styles.mobileDropdownItem} 
-                          onTouchEnd={() => handleCategoryClick(cat)}
-                        >
-                          <Text style={styles.mobileDropdownItemText}>{cat}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                </View>
-              )}
-            </View>
-          </View>
-          <View style={styles.mobileNavRow}>
-            <TouchableOpacity style={styles.mobileNavLink}>
-              <Text style={styles.mobileNavLinkText}>How it works</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.mobileNavLink}>
-              <Text style={styles.mobileNavLinkText}>Benefits</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.mobileNavLink}
-              onPress={() => navigation.navigate('Login')}
-            >
-              <Text style={styles.mobileNavLinkText}>Login</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.mobileNavLink}
-              onPress={() => navigation.navigate('SignUp')}
-            >
-              <Text style={styles.mobileNavLinkText}>Signup</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.mobileNavRow}>
-            <TouchableOpacity 
-              style={styles.mobileNavButton}
-              onPress={() => navigation.navigate('PerformerHome')}
-            >
-              <Text style={styles.mobileNavButtonText}>Become a Tasker</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        {/* Mobile Navigation Bar */}
+        <MobileNavBar />
 
         {/* Scrollable Content */}
         <ScrollView 
@@ -367,35 +280,7 @@ const PosterHomeScreen: React.FC = () => {
           </View>
         </ScrollView>
 
-        {/* Bottom Navigation */}
-        <View style={styles.mobileBottomNav}>
-          <TouchableOpacity style={[styles.mobileNavItem, styles.mobileNavItemActive]}>
-            <Text style={styles.mobileNavIcon}>⌂</Text>
-            <Text style={styles.mobileNavText}>Home</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.mobileNavItem}>
-            <Text style={styles.mobileNavIcon}>☐</Text>
-            <Text style={styles.mobileNavText}>Tasks</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.mobileNavItem}
-            onPress={() => navigation.navigate('TaskPostingForm')}
-          >
-            <Text style={styles.mobileNavIcon}>＋</Text>
-            <Text style={styles.mobileNavText}>Post / Discover</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.mobileNavItem}>
-            <Text style={styles.mobileNavIcon}>○</Text>
-            <Text style={styles.mobileNavText} onPress={() => navigation.navigate('Chat')}>Chat</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.mobileNavItem}
-            onPress={() => navigation.navigate('Profile')}
-          >
-            <Text style={styles.mobileNavIcon}>⚪</Text>
-            <Text style={styles.mobileNavText}>Account</Text>
-          </TouchableOpacity>
-        </View>
+
       </View>
     );
   }

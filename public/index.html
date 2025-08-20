@@ -2,28 +2,87 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Extrahand</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+    <meta name="theme-color" content="#f9b233"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-mobile-web-app-title" content="Extrahand"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="msapplication-TileColor" content="#f9b233"/>
+    <meta name="msapplication-config" content="/browserconfig.xml"/>
     
-    <!-- Favicon -->
+    <title>Extrahand - Task Management Platform</title>
+    <meta name="description" content="Connect with skilled professionals for your tasks and projects. Post tasks, find experts, and get things done efficiently."/>
+    <meta name="keywords" content="task management, freelancers, local services, home services, professional help"/>
+    <meta name="author" content="Extrahand"/>
+    <meta name="robots" content="index, follow"/>
+    
+    <!-- Favicon and App Icons -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/logo192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/logo192.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/logo192.png">
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://extrahandbackend.llp.trizenventures.com">
+    <link rel="preconnect" href="https://extrahand-app.firebaseapp.com">
+    
+    <!-- DNS Prefetch for additional performance -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//extrahandbackend.llp.trizenventures.com">
+    <link rel="dns-prefetch" href="//extrahand-app.firebaseapp.com">
     
     <!-- Open Graph Meta Tags for Social Sharing -->
-    <meta property="og:title" content="Extrahand - Get your tasks done wherever you are">
-    <meta property="og:description" content="Post any task, anywhere. Trusted locals will handle it for you.">
+    <meta property="og:title" content="Extrahand - Task Management Platform">
+    <meta property="og:description" content="Connect with skilled professionals for your tasks and projects. Post tasks, find experts, and get things done efficiently.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://extrahand.trizventures.com">
-    <meta property="og:image" content="/favicon.ico">
+    <meta property="og:image" content="/logo512.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:site_name" content="Extrahand">
+    <meta property="og:locale" content="en_US">
     
     <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Extrahand - Get your tasks done wherever you are">
-    <meta name="twitter:description" content="Post any task, anywhere. Trusted locals will handle it for you.">
-    <meta name="twitter:image" content="/favicon.ico">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Extrahand - Task Management Platform">
+    <meta name="twitter:description" content="Connect with skilled professionals for your tasks and projects. Post tasks, find experts, and get things done efficiently.">
+    <meta name="twitter:image" content="/logo512.png">
+    <meta name="twitter:site" content="@extrahand">
+    <meta name="twitter:creator" content="@extrahand">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    
+    <!-- Performance and Caching -->
+    <meta http-equiv="Cache-Control" content="public, max-age=31536000">
+    <meta http-equiv="Expires" content="31536000">
+    
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Extrahand",
+      "description": "Connect with skilled professionals for your tasks and projects",
+      "url": "https://extrahand.trizventures.com",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="app-root"></div>
