@@ -16,6 +16,7 @@
     "build:docker": "docker build -t extrahand .",
     "build:docker:simple": "docker build --file Dockerfile.simple -t extrahand:latest .",
     "deploy": "chmod +x deploy.sh && ./deploy.sh",
+    "deploy:fixed": "chmod +x deploy-fixed.sh && ./deploy-fixed.sh",
     "quick-fix": "chmod +x quick-fix.sh && ./quick-fix.sh",
     "deploy:caprover": "npm run build:web && git add . && git commit -m 'Deploy to CapRover' && git push",
     "deploy:staging": "npm run build:web:staging && git add . && git commit -m 'Deploy to Staging' && git push",

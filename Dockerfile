@@ -55,23 +55,14 @@ FROM nginx:alpine AS production
 # Install curl for health checks
 RUN apk add --no-cache curl
 
-# Create nginx user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
-
 # Copy built files from builder stage
-COPY --from=builder --chown=nextjs:nodejs /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Create necessary directories and set permissions
-RUN mkdir -p /var/cache/nginx /var/log/nginx /tmp/nginx && \
-    chown -R nextjs:nodejs /var/cache/nginx /var/log/nginx /tmp/nginx && \
-    chown -R nextjs:nodejs /usr/share/nginx/html
-
-# Switch to non-root user
-USER nextjs
+# Create necessary directories
+RUN mkdir -p /var/cache/nginx /var/log/nginx /tmp/nginx /run
 
 # Expose port 80
 EXPOSE 80

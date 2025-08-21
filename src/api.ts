@@ -69,13 +69,13 @@ function getMockData(path: string) {
         {
           _id: 'mock-task-1',
           creatorUid: 'mock-user-1',
-          type: 'Delivery',
-          title: 'Delivering passport to my friend',
-          description: 'Need to deliver passport to my friend in Gachibowli area. Urgent delivery required.',
+          type: 'Home Services',
+          title: 'Replace a kitchen tap',
+          description: 'Need to replace a leaking kitchen tap. The new tap is already purchased and available. Basic plumbing skills required.',
           location: {
             type: 'Point',
             coordinates: [78.4867, 17.3850],
-            address: 'Gachibowli outer ring road',
+            address: 'Hyderabad, India',
             city: 'Hyderabad',
             state: 'Telangana',
             country: 'India'
@@ -83,19 +83,19 @@ function getMockData(path: string) {
           preferredTime: {
             flexible: true,
             startDate: new Date(),
-            endDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
-            timeSlots: ['Anytime']
+            endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            timeSlots: ['Morning', 'Afternoon']
           },
           budget: {
             type: 'fixed',
-            amount: 300,
+            amount: 1500,
             currency: 'INR'
           },
           status: 'open',
-          skillsRequired: ['Delivery', 'Transportation'],
-          isUrgent: true,
-          views: 15,
-          applications: 3,
+          skillsRequired: ['Plumbing', 'Home Repair'],
+          isUrgent: false,
+          views: 8,
+          applications: 2,
           createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
           updatedAt: new Date()
         },
