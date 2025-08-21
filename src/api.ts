@@ -1,50 +1,48 @@
 import { auth } from './firebase';
+import { API_BASE_URL, isDevelopment } from './config';
 
-// API configuration for different environments
-const isDevelopment = process.env.REACT_APP_ENV === 'development' || window.location.hostname === 'localhost';
-const API_BASE = process.env.REACT_APP_API_BASE_URL || (isDevelopment 
-  ? 'http://localhost:4000'  // Use HTTP for local development
-  : 'https://extrahandbackend.llp.trizenventures.com'); // Production backend URL
+// Use the API_BASE_URL from config
+const API_BASE = API_BASE_URL;
 
 async function fetchWithAuth(path: string, init: RequestInit = {}) {
   try {
     const user = auth.currentUser;
-    if (!user) {
-      // For development, allow API calls without authentication
-      if (isDevelopment) {
-        const res = await fetch(`${API_BASE}${path}`, {
-          ...init,
-          headers: {
-            'Content-Type': 'application/json',
-            ...(init.headers || {}),
-          },
-        });
-        if (!res.ok) {
-          const text = await res.text().catch(() => '');
-          throw new Error(text || `HTTP ${res.status}`);
-        }
-        return res.json();
+    
+    // Always try to get authentication token if user is logged in
+    let authHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(init.headers as Record<string, string> || {}),
+    };
+    
+    if (user) {
+      try {
+        const token = await user.getIdToken();
+        authHeaders.Authorization = `Bearer ${token}`;
+        console.log('🔐 Using authenticated request with token');
+      } catch (tokenError) {
+        console.warn('⚠️ Failed to get auth token:', tokenError);
+        // Continue without token for development
       }
-      throw new Error('Not signed in');
+    } else {
+      console.log('👤 No user logged in, proceeding without authentication');
     }
     
-    const token = await user.getIdToken();
     const res = await fetch(`${API_BASE}${path}`, {
       ...init,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-        ...(init.headers || {}),
-      },
+      headers: authHeaders,
     });
     
     if (!res.ok) {
       const text = await res.text().catch(() => '');
+      console.error(`❌ API Error ${res.status}:`, text);
       throw new Error(text || `HTTP ${res.status}`);
     }
-    return res.json();
+    
+    const data = await res.json();
+    console.log(`✅ API Success: ${path}`, data);
+    return data;
   } catch (error) {
-    console.error('API Error:', error);
+    console.error('🚨 API Error:', error);
     throw error;
   }
 }
@@ -55,27 +53,7 @@ async function fetchWithFallback(path: string, init: RequestInit = {}) {
     return await fetchWithAuth(path, init);
   } catch (error) {
     if (isDevelopment) {
-      // Try development endpoint without authentication
-      if (path.includes('/api/v1/tasks') && !path.includes('/dev/')) {
-        console.log('🔄 Trying development endpoint without authentication...');
-        try {
-          const devPath = path.replace('/api/v1/tasks', '/api/v1/dev/tasks');
-          const res = await fetch(`${API_BASE}${devPath}`, {
-            ...init,
-            headers: {
-              'Content-Type': 'application/json',
-              ...(init.headers || {}),
-            },
-          });
-          if (res.ok) {
-            console.log('✅ Successfully fetched data from development endpoint');
-            return res.json();
-          }
-        } catch (devError) {
-          console.warn('Development endpoint failed:', devError);
-        }
-      }
-      console.warn('Backend not available, using fallback data');
+      console.warn('🔄 Backend not available, using fallback data');
       // Return mock data for development
       return getMockData(path);
     }
@@ -83,55 +61,109 @@ async function fetchWithFallback(path: string, init: RequestInit = {}) {
   }
 }
 
-// Mock data for development
+// Mock data for development - matches MongoDB schema
 function getMockData(path: string) {
   if (path.includes('/api/v1/tasks')) {
     return {
       tasks: [
         {
-          id: '1',
-          title: 'Replace a kitchen tap',
-          description: 'Replace a kitchen tap. Tap provided.',
-          location: { address: 'Hyderabad, India' },
-          budget: { amount: 249, currency: 'INR' },
+          _id: 'mock-task-1',
+          creatorUid: 'mock-user-1',
+          type: 'Delivery',
+          title: 'Delivering passport to my friend',
+          description: 'Need to deliver passport to my friend in Gachibowli area. Urgent delivery required.',
+          location: {
+            type: 'Point',
+            coordinates: [78.4867, 17.3850],
+            address: 'Gachibowli outer ring road',
+            city: 'Hyderabad',
+            state: 'Telangana',
+            country: 'India'
+          },
+          preferredTime: {
+            flexible: true,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            timeSlots: ['Anytime']
+          },
+          budget: {
+            type: 'fixed',
+            amount: 300,
+            currency: 'INR'
+          },
           status: 'open',
-          creator: { name: 'Myint K.', photoURL: null },
-          createdAt: Date.now() - 7 * 60 * 1000, // 7 minutes ago
-          type: 'Home Services',
-          skillsRequired: ['plumbing', 'repair'],
-          isUrgent: false,
-          views: 5,
-          applications: 2
-        },
-        {
-          id: '2',
-          title: 'Home Deep Cleaning',
-          description: 'Deep cleaning required for 3BHK apartment. All rooms, kitchen, and bathrooms.',
-          location: { address: 'Basheerbagh, India' },
-          budget: { amount: 560, currency: 'INR' },
-          status: 'open',
-          creator: { name: 'Priya M.', photoURL: null },
-          createdAt: Date.now() - 60 * 60 * 1000, // 1 hour ago
-          type: 'Cleaning',
-          skillsRequired: ['cleaning', 'housekeeping'],
+          skillsRequired: ['Delivery', 'Transportation'],
           isUrgent: true,
-          views: 12,
-          applications: 5
+          views: 15,
+          applications: 3,
+          createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+          updatedAt: new Date()
         },
         {
-          id: '3',
-          title: 'Sofa & Carpet Cleaning',
-          description: 'Professional cleaning needed for 3-seater sofa and large carpet in living room.',
-          location: { address: 'Hyderabad, India' },
-          budget: { amount: 400, currency: 'INR' },
+          _id: 'mock-task-2',
+          creatorUid: 'mock-user-2',
+          type: 'Home Services',
+          title: 'plumbing',
+          description: 'Need plumbing work done in kitchen. Leaking pipe needs to be fixed.',
+          location: {
+            type: 'Point',
+            coordinates: [78.4867, 17.3850],
+            address: 'Kondapur',
+            city: 'Hyderabad',
+            state: 'Telangana',
+            country: 'India'
+          },
+          preferredTime: {
+            flexible: true,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            timeSlots: ['Anytime']
+          },
+          budget: {
+            type: 'fixed',
+            amount: 200,
+            currency: 'INR'
+          },
           status: 'open',
-          creator: { name: 'Kumar R.', photoURL: null },
-          createdAt: Date.now() - 2 * 60 * 60 * 1000, // 2 hours ago
-          type: 'Cleaning',
-          skillsRequired: ['cleaning', 'upholstery'],
+          skillsRequired: ['Plumbing', 'Repair'],
           isUrgent: false,
           views: 8,
-          applications: 3
+          applications: 1,
+          createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
+          updatedAt: new Date()
+        },
+        {
+          _id: 'mock-task-3',
+          creatorUid: 'mock-user-3',
+          type: 'Cleaning',
+          title: 'Cleaning an old house',
+          description: 'Deep cleaning required for an old house. All rooms need thorough cleaning.',
+          location: {
+            type: 'Point',
+            coordinates: [78.4867, 17.3850],
+            address: 'Gachibowli outer ring road',
+            city: 'Hyderabad',
+            state: 'Telangana',
+            country: 'India'
+          },
+          preferredTime: {
+            flexible: true,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+            timeSlots: ['Anytime']
+          },
+          budget: {
+            type: 'fixed',
+            amount: 150,
+            currency: 'INR'
+          },
+          status: 'open',
+          skillsRequired: ['Cleaning', 'Housekeeping'],
+          isUrgent: false,
+          views: 12,
+          applications: 4,
+          createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
+          updatedAt: new Date()
         }
       ]
     };
@@ -139,15 +171,24 @@ function getMockData(path: string) {
   
   if (path.includes('/api/v1/profiles/me')) {
     return {
-      id: 'dev-user',
+      _id: 'mock-profile-1',
+      uid: 'mock-user-1',
       name: 'Development User',
       email: 'dev@example.com',
+      phone: '+919876543210',
       roles: ['both'],
       userType: 'individual',
-      skills: ['cleaning', 'plumbing', 'repair'],
+      skills: ['cleaning', 'plumbing', 'repair', 'delivery'],
       rating: 4.5,
       totalReviews: 10,
-      isVerified: true
+      isVerified: true,
+      location: {
+        type: 'Point',
+        coordinates: [78.4867, 17.3850],
+        address: 'Hyderabad, India'
+      },
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
   }
   

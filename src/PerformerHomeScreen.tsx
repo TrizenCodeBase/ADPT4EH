@@ -5,6 +5,8 @@ import { useAuth } from './AuthContext';
 import { api } from './api';
 import Footer from './Footer';
 import MobileNavBar from './components/MobileNavBar';
+import DevModeBanner from './components/DevModeBanner';
+import { FEATURE_FLAGS } from './config';
 
 const PRIMARY_YELLOW = '#f9b233';
 const PRIMARY_BLUE = '#2563eb';
@@ -225,14 +227,11 @@ const PerformerHomeScreen = () => {
   if (isMobileView) {
     return (
       <View style={styles.mobileContainer}>
-        {/* Development Mode Indicator */}
-        {process.env.NODE_ENV === 'development' && (
-          <View style={{ backgroundColor: '#ff6b6b', padding: 8, alignItems: 'center' }}>
-            <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
-              🛠️ DEVELOPMENT MODE - Using Mock Data
-            </Text>
-          </View>
-        )}
+        {/* Development Mode Banner */}
+        <DevModeBanner 
+          isVisible={FEATURE_FLAGS.showDevBanner} 
+          message="🛠️ DEVELOPMENT MODE - Using Mock Data"
+        />
         
         {/* Mobile Navigation Bar */}
         <MobileNavBar />
@@ -339,14 +338,11 @@ const PerformerHomeScreen = () => {
   // Desktop web layout (new implementation based on reference image)
   return (
     <View style={styles.desktopContainer}>
-      {/* Development Mode Indicator */}
-      {process.env.NODE_ENV === 'development' && (
-        <View style={{ backgroundColor: '#ff6b6b', padding: 8, alignItems: 'center' }}>
-          <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
-            🛠️ DEVELOPMENT MODE - Using Mock Data
-          </Text>
-        </View>
-      )}
+      {/* Development Mode Banner */}
+      <DevModeBanner 
+        isVisible={FEATURE_FLAGS.showDevBanner} 
+        message="🛠️ DEVELOPMENT MODE - Using Mock Data"
+      />
       {/* Header */}
       <View style={styles.desktopHeader}>
         <View style={styles.desktopHeaderContent}>
