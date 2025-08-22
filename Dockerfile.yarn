@@ -1,21 +1,19 @@
-# Multi-stage build for production - Fallback version with npm install
+# Multi-stage build for production - Yarn version for better network reliability
 FROM node:20-alpine AS deps
 
 WORKDIR /app
 
-# Install necessary build tools and set npm configuration
+# Install yarn and set up for better network handling
 RUN apk add --no-cache git && \
-    npm config set registry https://registry.npmjs.org/ && \
-    npm config set fetch-timeout 300000 && \
-    npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    npm config set fetch-retries 5
+    npm install -g yarn && \
+    yarn config set network-timeout 300000 && \
+    yarn config set network-concurrency 1
 
 # Copy package files first for better layer caching
-COPY package*.json ./
+COPY package.json yarn.lock* ./
 
-# Install dependencies with better network handling
-RUN npm install --prefer-offline --no-audit --network-timeout=300000 --maxsockets=1
+# Install dependencies with yarn (better network handling)
+RUN yarn install --frozen-lockfile --network-timeout 300000
 
 # Build stage
 FROM node:20-alpine AS builder
@@ -51,7 +49,7 @@ ENV NODE_ENV=$NODE_ENV
 ENV REACT_APP_ENV=$REACT_APP_ENV
 
 # Build the application
-RUN npm run build:web
+RUN yarn build:web
 
 # Production stage - Use nginx:alpine for smaller size
 FROM nginx:alpine AS production
