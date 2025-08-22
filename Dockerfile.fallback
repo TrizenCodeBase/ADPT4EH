@@ -1,4 +1,4 @@
-# Multi-stage build for production - Optimized for speed and size
+# Multi-stage build for production - Fallback version with npm install
 FROM node:20-alpine AS deps
 
 WORKDIR /app
@@ -6,9 +6,8 @@ WORKDIR /app
 # Copy package files first for better layer caching
 COPY package*.json ./
 
-# Install dependencies with better caching
-# Use npm ci for faster, more reliable installs
-RUN npm ci --prefer-offline --no-audit
+# Install dependencies with npm install (more flexible than npm ci)
+RUN npm install --prefer-offline --no-audit
 
 # Build stage
 FROM node:20-alpine AS builder
@@ -71,4 +70,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost/health || exit 1
 
 # Start nginx
-CMD ["nginx", "-g", "daemon off;"] 
+CMD ["nginx", "-g", "daemon off;"]
