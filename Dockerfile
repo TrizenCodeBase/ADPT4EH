@@ -1,14 +1,14 @@
-# Multi-stage build for production
+# Multi-stage build for production - Optimized for speed and size
 FROM node:18-alpine AS deps
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files first for better layer caching
 COPY package*.json ./
 
-# Install all dependencies (including dev dependencies)
-# Use npm install instead of npm ci for better compatibility
-RUN npm install --production=false
+# Install dependencies with better caching
+# Use npm ci for faster, more reliable installs
+RUN npm ci --only=production=false --prefer-offline --no-audit
 
 # Build stage
 FROM node:18-alpine AS builder
@@ -18,7 +18,7 @@ WORKDIR /app
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
-# Copy source code
+# Copy source code (excluding files in .dockerignore)
 COPY . .
 
 # Set build-time environment variables
@@ -43,17 +43,15 @@ ENV REACT_APP_FIREBASE_MEASUREMENT_ID=$REACT_APP_FIREBASE_MEASUREMENT_ID
 ENV NODE_ENV=$NODE_ENV
 ENV REACT_APP_ENV=$REACT_APP_ENV
 
-# Clear npm cache and install dependencies if needed
-RUN npm cache clean --force
-
 # Build the application
 RUN npm run build:web
 
-# Production stage
+# Production stage - Use nginx:alpine for smaller size
 FROM nginx:alpine AS production
 
-# Install curl for health checks
-RUN apk add --no-cache curl
+# Install curl for health checks (minimal installation)
+RUN apk add --no-cache --virtual .build-deps curl && \
+    rm -rf /var/cache/apk/*
 
 # Copy built files from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
@@ -61,8 +59,9 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Create necessary directories
-RUN mkdir -p /var/cache/nginx /var/log/nginx /tmp/nginx /run
+# Create necessary directories with proper permissions
+RUN mkdir -p /var/cache/nginx /var/log/nginx /tmp/nginx /run && \
+    chown -R nginx:nginx /var/cache/nginx /var/log/nginx /tmp/nginx /run
 
 # Expose port 80
 EXPOSE 80
