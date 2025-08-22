@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Platform, Dimensions } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
+import { sessionManager } from './SessionManager';
+import { api } from './api';
 
 const PRIMARY_YELLOW = '#f9b233';
 const DARK = '#222';
@@ -10,7 +12,7 @@ const LIGHT_GRAY = '#f5f5f5';
 const SearchLocationScreen = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState('Gachibowli');
-  const [isSearchFocused, setIsSearchFocused] = useState(true);
+  const [_isSearchFocused, setIsSearchFocused] = useState(true);
   const [isMobileView, setIsMobileView] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
 
@@ -72,7 +74,7 @@ const SearchLocationScreen = () => {
     navigation.goBack();
   };
 
-  const handleUseCurrentLocation = () => {
+  const handleUseCurrentLocation = async () => {
     // Mock current location data
     const currentLocation = {
       doorNo: 'Current Location',
@@ -83,10 +85,32 @@ const SearchLocationScreen = () => {
       country: 'India'
     };
     
+    // Save location data to backend API
+    try {
+      console.log('💾 Saving current location data to backend API');
+              await api.upsertProfile({
+          location: {
+            type: 'Point',
+            coordinates: [78.4867, 17.3850], // Mock coordinates for Hyderabad
+            address: 'Hyderabad, Telangana, India'
+          }
+        });
+      console.log('✅ Current location data saved successfully to backend API');
+    } catch (error) {
+      console.error('❌ Failed to save current location data to backend:', error);
+      // Continue with onboarding even if save fails
+    }
+    
+    // Save onboarding progress with current location
+    sessionManager.updateOnboardingStep('location', {
+      method: 'gps',
+      location: currentLocation
+    });
+    
     navigation.navigate('LocationConfirmation', { addressDetails: currentLocation });
   };
 
-  const handleLocationSelect = (location: any) => {
+  const handleLocationSelect = async (location: any) => {
     // Parse the location data for LocationConfirmation
     const addressDetails = {
       doorNo: location.name,
@@ -97,6 +121,28 @@ const SearchLocationScreen = () => {
       country: 'India',
       fullAddress: location.address
     };
+    
+    // Save location data to backend API
+    try {
+      console.log('💾 Saving selected location data to backend API');
+              await api.upsertProfile({
+          location: {
+            type: 'Point',
+            coordinates: [78.4867, 17.3850], // Mock coordinates for Hyderabad
+            address: location.address
+          }
+        });
+      console.log('✅ Selected location data saved successfully to backend API');
+    } catch (error) {
+      console.error('❌ Failed to save selected location data to backend:', error);
+      // Continue with onboarding even if save fails
+    }
+    
+    // Save onboarding progress with selected location
+    sessionManager.updateOnboardingStep('location', {
+      method: 'search',
+      location: addressDetails
+    });
     
     navigation.navigate('LocationConfirmation', { addressDetails });
   };

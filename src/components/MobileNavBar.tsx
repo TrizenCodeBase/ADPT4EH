@@ -17,7 +17,7 @@ const MobileNavBar: React.FC<MobileNavBarProps> = ({
   onBackPress 
 }) => {
   const navigation = useNavigation();
-  const { currentUser, userData } = useAuth();
+  const { currentUser, userData, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleMenuPress = () => {
@@ -144,9 +144,15 @@ const MobileNavBar: React.FC<MobileNavBarProps> = ({
                 </View>
                 <TouchableOpacity 
                   style={styles.menuLogoutButton}
-                  onPress={() => {
+                  onPress={async () => {
                     setIsMenuOpen(false);
-                    // Add logout logic here
+                    try {
+                      await logout();
+                      // Navigation will be handled automatically by AuthContext
+                      // The user will be redirected to Landing page
+                    } catch (error) {
+                      console.error('Logout failed:', error);
+                    }
                   }}
                 >
                   <Text style={styles.menuLogoutText}>Logout</Text>

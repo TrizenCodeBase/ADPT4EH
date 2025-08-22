@@ -46,7 +46,7 @@ const getDefaultAvatar = (name: string) => {
 
 const PerformerHomeScreen = () => {
   const navigation = useNavigation();
-  const { currentUser, userData } = useAuth();
+  const { currentUser, userData, logout } = useAuth();
   const [isMobileView, setIsMobileView] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
@@ -401,7 +401,7 @@ const PerformerHomeScreen = () => {
             </TouchableOpacity>
           </View>
           
-          {/* Right: Profile Icon */}
+          {/* Right: Profile Icon and Logout */}
           <View style={styles.desktopRightMenu}>
             <TouchableOpacity 
               style={styles.desktopMenuLink}
@@ -414,6 +414,19 @@ const PerformerHomeScreen = () => {
               onPress={() => navigation.navigate('Profile')}
             >
               <Text style={styles.desktopProfileIcon}>👤</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.desktopLogoutButton}
+              onPress={async () => {
+                try {
+                  await logout();
+                  // Navigation will be handled automatically by AuthContext
+                } catch (error) {
+                  console.error('Logout failed:', error);
+                }
+              }}
+            >
+              <Text style={styles.desktopLogoutText}>Logout</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -698,6 +711,18 @@ const styles = StyleSheet.create({
   desktopProfileIcon: {
     fontSize: 20,
     color: '#666',
+  },
+  desktopLogoutButton: {
+    backgroundColor: '#ef4444',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  desktopLogoutText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
   desktopFilterSection: {
     paddingHorizontal: 20,

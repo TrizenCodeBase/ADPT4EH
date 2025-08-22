@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Dimensions } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
+import { sessionManager } from './SessionManager';
 
 const PRIMARY_YELLOW = '#f9b233';
 const DARK = '#222';
@@ -53,14 +54,26 @@ const ChooseLocationMethodScreen = () => {
         {/* Buttons */}
         <TouchableOpacity
           style={styles.androidCurrentLocationBtn}
-          onPress={() => navigation.navigate('LocationInput')}
+          onPress={() => {
+            // Save onboarding progress
+            sessionManager.updateOnboardingStep('location', {
+              method: 'input'
+            });
+            navigation.navigate('LocationInput');
+          }}
         >
           <Text style={styles.androidCurrentLocationText}>At my current location</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.androidManualLocationBtn}
-          onPress={() => navigation.navigate('SearchLocation')}
+          onPress={() => {
+            // Save onboarding progress
+            sessionManager.updateOnboardingStep('location', {
+              method: 'search'
+            });
+            navigation.navigate('SearchLocation');
+          }}
         >
           <Text style={styles.androidManualLocationText}>I'll enter my location manually</Text>
         </TouchableOpacity>
@@ -85,7 +98,10 @@ const ChooseLocationMethodScreen = () => {
           style={styles.currentLocationBtn}
           onPress={() => {
             console.log('ChooseLocationMethod - Current location button pressed');
-            console.log('Navigation object:', navigation);
+            // Save onboarding progress
+            sessionManager.updateOnboardingStep('location', {
+              method: 'input'
+            });
             navigation.navigate('LocationInput');
           }}
         >
@@ -95,7 +111,10 @@ const ChooseLocationMethodScreen = () => {
           style={styles.manualLocationBtn}
           onPress={() => {
             console.log('ChooseLocationMethod - Manual location button pressed');
-            console.log('Navigation object:', navigation);
+            // Save onboarding progress
+            sessionManager.updateOnboardingStep('location', {
+              method: 'search'
+            });
             navigation.navigate('SearchLocation');
           }}
         >

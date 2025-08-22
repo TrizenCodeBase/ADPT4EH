@@ -2,6 +2,8 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Platform, Modal, ScrollView, Alert } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
 import InteractiveMap from './components/InteractiveMap';
+import { sessionManager } from './SessionManager';
+import { api } from './api';
 
 import { reverseGeocode, type Location } from './services/geocoding';
 
@@ -56,7 +58,7 @@ const LocationInputScreen = () => {
     }
   }, []);
 
-  const handleConfirm = useCallback(() => {
+  const handleConfirm = useCallback(async () => {
     console.log('🔍 LocationInput - handleConfirm called - START');
     
     if (!selectedLocation) {
@@ -84,8 +86,38 @@ const LocationInputScreen = () => {
         };
         console.log('📦 Navigation params:', params);
         
+        // Save location data to backend API
+        try {
+          console.log('💾 Saving location data to backend API');
+          await api.upsertProfile({
+            location: {
+              type: 'Point',
+              coordinates: [selectedLocation.longitude, selectedLocation.latitude],
+              address: selectedLocation.address || `${addressDetails.area}, ${addressDetails.city}, ${addressDetails.state}, ${addressDetails.country}`,
+              // Include address details for better location information
+              doorNo: addressDetails.doorNo,
+              area: addressDetails.area,
+              city: addressDetails.city,
+              state: addressDetails.state,
+              pinCode: addressDetails.pinCode,
+              country: addressDetails.country
+            }
+          });
+          console.log('✅ Location data saved successfully to backend API');
+        } catch (error) {
+          console.error('❌ Failed to save location data to backend:', error);
+          // Continue with onboarding even if save fails
+        }
+        
+        // Save onboarding progress with location data
+        sessionManager.updateOnboardingStep('location', {
+          method: 'input',
+          location: selectedLocation
+        });
+        console.log('✅ Onboarding progress saved with location data');
+        
         console.log('🔄 LocationInput - Calling navigation.navigate...');
-        navigation.navigate('LocationConfirmation', params);
+        navigation.navigate('RoleSelection', params);
         console.log('✅ LocationInput - Navigation call completed successfully');
         
         // Add a small delay to ensure navigation completes

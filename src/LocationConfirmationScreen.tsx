@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions } from '
 import { api } from './api';
 import { useNavigation } from './SimpleNavigation';
 import { useAuth } from './AuthContext';
+import { sessionManager } from './SessionManager';
 
 const PRIMARY_YELLOW = '#f9b233';
 const DARK = '#222';
@@ -55,6 +56,12 @@ const LocationConfirmationScreen = () => {
     
     const persistAndGo = async () => {
       console.log('🚀 LocationConfirmationScreen - persistAndGo called');
+      
+      // Save onboarding progress to roles step
+      sessionManager.updateOnboardingStep('roles', {
+        selectedRoles: []
+      });
+      console.log('✅ Onboarding progress saved to roles step');
       
       // Always attempt navigation first, then save data in background
       if (navigation && navigation.navigate) {

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Dimensions } from 'react-native';
 import { useNavigation } from './SimpleNavigation';
 import { useAuth } from './AuthContext';
+import { sessionManager } from './SessionManager';
 
 const PRIMARY_YELLOW = '#f9b233';
 const DARK = '#222';
@@ -114,15 +115,30 @@ const RoleSelectionScreen = () => {
                  const roles = goal === 'earn' ? ['tasker'] : ['poster'];
                  console.log('💾 Saving complete profile data to backend API');
                  
+                 // Get location data from session manager
+                 const onboardingState = sessionManager.getOnboardingState();
+                 const locationData = onboardingState?.locationData?.location;
+                 
                  // Save complete profile data to backend API
                  await api.upsertProfile({ 
                    name: 'User', 
                    roles,
                    userType,
                    agreeUpdates,
-                   agreeTerms
+                   agreeTerms,
+                                       location: locationData ? {
+                      type: 'Point',
+                      coordinates: [locationData.longitude, locationData.latitude],
+                      address: locationData.address
+                    } : undefined
                  });
                  console.log('✅ Complete profile data saved successfully to backend API');
+                 
+                 // Save onboarding progress as complete
+                 sessionManager.updateOnboardingStep('complete', {
+                   selectedRoles: roles
+                 });
+                 console.log('✅ Onboarding progress saved as complete');
                  
                  // Refresh user data in AuthContext after saving profile
                  await refreshUserData();
@@ -246,19 +262,25 @@ const RoleSelectionScreen = () => {
                const roles = goal === 'earn' ? ['tasker'] : ['poster'];
                console.log('💾 Saving complete profile data to backend API');
                
-               // Save complete profile data to backend API
-               await api.upsertProfile({ 
-                 name: 'User', 
-                 roles,
-                 userType,
-                 agreeUpdates,
-                 agreeTerms
-               });
-               console.log('✅ Complete profile data saved successfully to backend API');
-               
-               // Refresh user data in AuthContext after saving profile
-               await refreshUserData();
-               console.log('✅ User data refreshed in AuthContext');
+                                // Save complete profile data to backend API
+                 await api.upsertProfile({ 
+                   name: 'User', 
+                   roles,
+                   userType,
+                   agreeUpdates,
+                   agreeTerms
+                 });
+                 console.log('✅ Complete profile data saved successfully to backend API');
+                 
+                 // Save onboarding progress as complete
+                 sessionManager.updateOnboardingStep('complete', {
+                   selectedRoles: roles
+                 });
+                 console.log('✅ Onboarding progress saved as complete');
+                 
+                 // Refresh user data in AuthContext after saving profile
+                 await refreshUserData();
+                 console.log('✅ User data refreshed in AuthContext');
                
                // Navigate based on role selection with a small delay to ensure API call completes
               setTimeout(() => {

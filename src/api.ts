@@ -170,23 +170,103 @@ function getMockData(path: string) {
   }
   
   if (path.includes('/api/v1/profiles/me')) {
+    // Check if user has completed onboarding by checking session manager
+    // This is a fallback for when backend is not available
+    try {
+      const { sessionManager } = require('./SessionManager');
+      const onboardingState = sessionManager.getOnboardingState();
+      
+      // If user has completed onboarding (has both location and roles)
+      if (onboardingState?.step === 'complete' && onboardingState?.locationData?.location) {
+        const locationData = onboardingState.locationData.location;
+        return {
+          _id: 'mock-profile-completed',
+          uid: 'mock-user-completed',
+          name: 'User',
+          email: 'user@example.com',
+          phone: '+919876543210',
+          roles: onboardingState.roleData?.selectedRoles || ['tasker'],
+          userType: 'individual',
+          skills: ['cleaning', 'plumbing', 'repair', 'delivery'],
+          rating: 4.5,
+          totalReviews: 10,
+          isVerified: true,
+          location: {
+            type: 'Point',
+            coordinates: [locationData.longitude, locationData.latitude],
+            lat: locationData.latitude,
+            lng: locationData.longitude,
+            address: locationData.address || 'Hyderabad, Telangana, India'
+          },
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      }
+      
+      // If user has roles but no location (incomplete onboarding)
+      if (onboardingState?.roleData?.selectedRoles && onboardingState.roleData.selectedRoles.length > 0) {
+        return {
+          _id: 'mock-profile-incomplete',
+          uid: 'mock-user-incomplete',
+          name: 'User',
+          email: 'user@example.com',
+          phone: '+919876543210',
+          roles: onboardingState.roleData.selectedRoles,
+          userType: 'individual',
+          skills: ['cleaning', 'plumbing', 'repair', 'delivery'],
+          rating: 4.5,
+          totalReviews: 10,
+          isVerified: true,
+          location: null, // No location - user needs to complete location step
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      }
+      
+      // If user has location data but onboarding step is not 'complete'
+      if (onboardingState?.locationData?.location && onboardingState?.roleData?.selectedRoles) {
+        const locationData = onboardingState.locationData.location;
+        return {
+          _id: 'mock-profile-with-location',
+          uid: 'mock-user-with-location',
+          name: 'User',
+          email: 'user@example.com',
+          phone: '+919876543210',
+          roles: onboardingState.roleData.selectedRoles,
+          userType: 'individual',
+          skills: ['cleaning', 'plumbing', 'repair', 'delivery'],
+          rating: 4.5,
+          totalReviews: 10,
+          isVerified: true,
+          location: {
+            type: 'Point',
+            coordinates: [locationData.longitude, locationData.latitude],
+            lat: locationData.latitude,
+            lng: locationData.longitude,
+            address: locationData.address || 'Hyderabad, Telangana, India'
+          },
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      }
+    } catch (error) {
+      console.warn('Could not check session manager for mock data:', error);
+    }
+    
+    // Default: return a new user profile (no roles, no location)
     return {
-      _id: 'mock-profile-1',
-      uid: 'mock-user-1',
-      name: 'Development User',
-      email: 'dev@example.com',
-      phone: '+919876543210',
-      roles: ['both'],
+      _id: 'mock-profile-new',
+      uid: 'mock-user-new',
+      name: '',
+      email: 'newuser@example.com',
+      phone: '',
+      roles: [], // No roles for new users
       userType: 'individual',
-      skills: ['cleaning', 'plumbing', 'repair', 'delivery'],
-      rating: 4.5,
-      totalReviews: 10,
-      isVerified: true,
-      location: {
-        type: 'Point',
-        coordinates: [78.4867, 17.3850],
-        address: 'Hyderabad, India'
-      },
+      skills: [],
+      rating: 0,
+      totalReviews: 0,
+      isVerified: false,
+      location: null, // No location for new users
       createdAt: new Date(),
       updatedAt: new Date()
     };

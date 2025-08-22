@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Platform, BackHandler } from 'react-native';
 import { useAuth } from './AuthContext';
+import { sessionManager } from './SessionManager';
 
 // Import all screens
 import LandingScreen from './LandingScreen';
@@ -22,6 +23,7 @@ import TaskListingScreen from './TaskListingScreen';
 import ChatScreen from './ChatScreen';
 import MakeOfferDetailsScreen from './MakeOfferDetailsScreen';
 import MapTest from './components/MapTest';
+import LoadingScreen from './components/LoadingScreen';
 
 // Navigation context
 interface NavigationContextType {
@@ -47,8 +49,12 @@ export const useNavigation = () => {
 
 // Navigation provider component
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentRoute, setCurrentRoute] = useState('Landing');
-  const [routeHistory, setRouteHistory] = useState<string[]>(['Landing']);
+  // Check if there's a session on initialization
+  const hasSession = sessionManager.getSession().isAuthenticated;
+  const initialRoute = hasSession ? 'Loading' : 'Landing';
+  
+  const [currentRoute, setCurrentRoute] = useState(initialRoute);
+  const [routeHistory, setRouteHistory] = useState<string[]>([initialRoute]);
   const [params, setParams] = useState<any>({});
   const [isRoleSelectionInProgress, setIsRoleSelectionInProgress] = useState(false);
 
@@ -71,9 +77,12 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Initialize route history for Android
   useEffect(() => {
     if (Platform.OS !== 'web') {
-      // For Android/iOS, ensure we start with Landing in history
-      setRouteHistory(['Landing']);
-      setCurrentRoute('Landing');
+      // For Android/iOS, check if there's a session and start appropriately
+      const hasSession = sessionManager.getSession().isAuthenticated;
+      const initialRoute = hasSession ? 'Loading' : 'Landing';
+      
+      setRouteHistory([initialRoute]);
+      setCurrentRoute(initialRoute);
     }
   }, []);
 
@@ -105,24 +114,51 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Handle browser back/forward for web
   useEffect(() => {
     if (Platform.OS === 'web') {
-      // Always start with Landing page, regardless of URL
-      const initialPath = 'Landing';
-      const initialParams = parseQueryParams(window.location.search);
-      
-      console.log('🌐 Web initialization - Starting with Landing page');
-      console.log('📍 Original URL:', window.location.pathname);
-      
-      setCurrentRoute(initialPath);
-      setParams(initialParams);
-      
-      // Initialize history starting with Landing
-      setRouteHistory(['Landing']);
-      
-      // Update URL to reflect Landing page
-      if (window.location.pathname !== '/Landing' && window.location.pathname !== '/') {
-        console.log('🔄 Updating URL from', window.location.pathname, 'to /Landing');
-        window.history.replaceState({}, '', '/Landing');
-      }
+      // Wait for session restoration to complete before determining initial route
+      const initializeWebNavigation = () => {
+        // Check for saved route from session
+        const lastRoute = sessionManager.getLastRoute();
+        const session = sessionManager.getSession();
+        
+        let initialPath = 'Landing';
+        let initialParams = parseQueryParams(window.location.search);
+        
+        // If user is authenticated and has a saved route, use it
+        if (session.isAuthenticated && lastRoute && lastRoute.route !== 'Landing') {
+          initialPath = lastRoute.route;
+          initialParams = lastRoute.params || {};
+          console.log('🌐 Web initialization - Restoring saved route:', initialPath);
+        } else {
+          console.log('🌐 Web initialization - Starting with Landing page');
+        }
+        
+        console.log('📍 Original URL:', window.location.pathname);
+        
+        // Don't set the route immediately if we're restoring a session
+        // Let the getCorrectRoute function handle the routing after session restoration
+        if (!session.isAuthenticated) {
+          setCurrentRoute(initialPath);
+          setParams(initialParams);
+          
+          // Initialize history starting with the determined route
+          setRouteHistory([initialPath]);
+          
+          // Update URL to reflect the determined route
+          if (window.location.pathname !== `/${initialPath}` && window.location.pathname !== '/') {
+            console.log('🔄 Updating URL from', window.location.pathname, `to /${initialPath}`);
+            window.history.replaceState({}, '', `/${initialPath}`);
+          }
+        } else {
+          console.log('🌐 Web initialization - Session found, waiting for auth restoration');
+          // Don't set any route - let the loading state handle it
+          // The getCorrectRoute function will determine the correct route after session restoration
+          // Just set the params but don't change the route
+          setParams(initialParams);
+        }
+      };
+
+      // Initialize immediately, but also set up a listener for session changes
+      initializeWebNavigation();
 
       const handlePopState = () => {
         const path = window.location.pathname.slice(1) || 'Landing';
@@ -139,6 +175,12 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const navigate = (route: string, newParams?: any) => {
     console.log('Navigating to:', route, 'with params:', newParams);
     console.log('Current route history before navigation:', routeHistory);
+    
+    // Save route to session (except for auth and onboarding routes)
+    const shouldSaveRoute = !['Landing', 'SignUp', 'Login', 'OTPVerification', 'ChooseLocationMethod', 'LocationInput', 'LocationConfirmation', 'SearchLocation', 'RoleSelection'].includes(route);
+    if (shouldSaveRoute) {
+      sessionManager.saveRoute(route, newParams);
+    }
     
     // Update browser URL for web
     if (Platform.OS === 'web') {
@@ -225,12 +267,24 @@ const SimpleNavigation: React.FC = () => {
 
   // Check if user has completed onboarding
   const hasCompletedOnboarding = useCallback(() => {
-    if (!currentUser || !userData) return false;
+    if (!currentUser || !userData) {
+      console.log('🔍 hasCompletedOnboarding: false - no currentUser or userData');
+      return false;
+    }
     
     // Check if user has location and roles set
-    // Location can be an object with lat/lng/address or a string
-    const hasLocation = userData.location && (
-      (typeof userData.location === 'object' && userData.location.lat && userData.location.lng) ||
+    // Location can be an object with lat/lng/address or coordinates array
+    const hasLocation = !!userData.location && (
+      (typeof userData.location === 'object' && (
+        // Check for lat/lng properties (frontend format)
+        (userData.location.lat && userData.location.lng) ||
+        // Check for coordinates array (backend format)
+        (userData.location.coordinates && Array.isArray(userData.location.coordinates) && userData.location.coordinates.length === 2) ||
+        // Check for address with coordinates (backend format)
+        (userData.location.address && userData.location.coordinates && Array.isArray(userData.location.coordinates) && userData.location.coordinates.length === 2) ||
+        // Check for just address (string format)
+        (userData.location.address && typeof userData.location.address === 'string' && userData.location.address.length > 0)
+      )) ||
       (typeof userData.location === 'string' && userData.location !== 'Not specified')
     );
     const hasRoles = userData.roles && userData.roles.length > 0 && 
@@ -240,15 +294,21 @@ const SimpleNavigation: React.FC = () => {
       hasLocation,
       hasRoles,
       location: userData.location,
+      locationKeys: userData.location ? Object.keys(userData.location) : null,
+      locationLat: userData.location?.lat,
+      locationLng: userData.location?.lng,
+      locationCoordinates: userData.location?.coordinates,
       roles: userData.roles,
       locationType: typeof userData.location,
       userDataKeys: Object.keys(userData || {}),
       userDataStringified: JSON.stringify(userData, null, 2)
     });
     
-    // For now, allow access if user has roles (location can be set later)
-    // This allows users to complete role selection and access home screens
-    return hasRoles;
+    // User must have both roles AND location to complete onboarding
+    // This ensures users complete the full onboarding flow
+    const result = hasRoles && hasLocation;
+    console.log('🔍 hasCompletedOnboarding result:', result);
+    return result;
   }, [currentUser, userData]);
 
   // Determine the correct route based on authentication and onboarding status
@@ -261,8 +321,53 @@ const SimpleNavigation: React.FC = () => {
       userData: userData
     });
     
-    // If still loading auth state, show landing
-    if (loading) return 'Landing';
+    // If still loading auth state, show loading state instead of landing
+    // This prevents the "swinging" effect where users briefly see Landing page
+    if (loading) {
+      console.log('⏳ Auth still loading - showing loading state');
+      return 'Loading'; // We'll handle this in renderScreen
+    }
+    
+    // If we have a session but no user data yet, also show loading
+    // This handles the case where session restoration is in progress
+    const session = sessionManager.getSession();
+    if (session.isAuthenticated && !currentUser && !userData) {
+      console.log('⏳ Session restoration in progress - showing loading state');
+      return 'Loading';
+    }
+    
+    // If we're currently on Loading route, determine the correct route based on user state
+    if (currentRoute === 'Loading') {
+      console.log('🔍 Loading route check - determining correct route');
+      
+      // If user has completed onboarding, redirect to appropriate home screen
+      if (currentUser && hasCompletedOnboarding()) {
+        console.log('🔄 User on Loading route but has completed onboarding - redirecting to home');
+        if (userData.roles && userData.roles.includes('tasker')) {
+          console.log('✅ Redirecting to PerformerHome');
+          return 'PerformerHome';
+        } else if (userData.roles && userData.roles.includes('poster')) {
+          console.log('✅ Redirecting to PosterHome');
+          return 'PosterHome';
+        }
+      }
+      
+      // If user is authenticated but onboarding not complete, redirect to onboarding
+      if (currentUser && !hasCompletedOnboarding()) {
+        console.log('🔄 User on Loading route but onboarding not complete - redirecting to onboarding');
+        return 'ChooseLocationMethod';
+      }
+      
+      // If not authenticated, redirect to Landing
+      if (!currentUser) {
+        console.log('🔄 User on Loading route but not authenticated - redirecting to Landing');
+        return 'Landing';
+      }
+      
+      // If still loading, stay on Loading
+      console.log('⏳ Still loading - staying on Loading route');
+      return 'Loading';
+    }
     
     // If role selection is in progress, don't redirect
     if (isRoleSelectionInProgress) {
@@ -270,9 +375,56 @@ const SimpleNavigation: React.FC = () => {
       return currentRoute;
     }
     
-    // If we're on Landing page, always allow it (don't redirect away from Landing)
+    // Check if user should continue onboarding from where they left off
+    if (currentUser && sessionManager.shouldContinueOnboarding()) {
+      const nextStep = sessionManager.getNextOnboardingStep();
+      console.log('🔄 User should continue onboarding from step:', nextStep);
+      
+      // If user is on a different onboarding step, redirect to the correct one
+      const onboardingRoutes = ['ChooseLocationMethod', 'LocationInput', 'LocationConfirmation', 'SearchLocation', 'RoleSelection'];
+      if (onboardingRoutes.includes(currentRoute) && currentRoute !== nextStep) {
+        console.log('🔄 Redirecting to correct onboarding step:', nextStep);
+        return nextStep;
+      }
+      
+      // If user is on a non-onboarding route but should continue onboarding
+      if (!onboardingRoutes.includes(currentRoute)) {
+        console.log('🔄 Redirecting to onboarding step:', nextStep);
+        return nextStep;
+      }
+    }
+    
+    // If we're on Landing page, check if user should be redirected to home
     if (currentRoute === 'Landing') {
-      console.log('✅ On Landing page - allowing it');
+      console.log('🔍 Landing page check:', {
+        hasCurrentUser: !!currentUser,
+        hasCompletedOnboarding: hasCompletedOnboarding(),
+        userData: userData,
+        userRoles: userData?.roles
+      });
+      
+      // If user is authenticated and has completed onboarding, redirect to appropriate home screen
+      if (currentUser && hasCompletedOnboarding()) {
+        console.log('🔄 User authenticated with completed onboarding - redirecting from Landing to home');
+        // Determine which home screen to show based on user's role
+        if (userData.roles && userData.roles.includes('tasker')) {
+          console.log('✅ Redirecting to PerformerHome');
+          return 'PerformerHome';
+        } else if (userData.roles && userData.roles.includes('poster')) {
+          console.log('✅ Redirecting to PosterHome');
+          return 'PosterHome';
+        }
+      }
+      
+      // If user has roles but no location, redirect to location setup
+      if (currentUser && userData && userData.roles && userData.roles.length > 0 && 
+          (!userData.location || (typeof userData.location === 'object' && (!userData.location.lat || !userData.location.lng)))) {
+        console.log('🔄 User has roles but no location - redirecting to ChooseLocationMethod');
+        return 'ChooseLocationMethod';
+      }
+      
+      // If not authenticated or onboarding not complete, allow Landing
+      console.log('✅ On Landing page - allowing it (not authenticated or onboarding not complete)');
       return 'Landing';
     }
     
@@ -300,15 +452,21 @@ const SimpleNavigation: React.FC = () => {
       return 'RoleSelection';
     }
     
-    // If we're on ChooseLocationMethod page, always allow it (don't redirect away from ChooseLocationMethod)
-    if (currentRoute === 'ChooseLocationMethod') {
-      console.log('✅ On ChooseLocationMethod page - allowing it');
-      return 'ChooseLocationMethod';
-    }
-    
-    // If we're on other onboarding pages, always allow them (don't redirect away from onboarding)
-    const onboardingPages = ['LocationInput', 'LocationConfirmation', 'SearchLocation'];
+    // If we're on onboarding pages, check if user has completed onboarding
+    const onboardingPages = ['ChooseLocationMethod', 'LocationInput', 'LocationConfirmation', 'SearchLocation', 'RoleSelection'];
     if (onboardingPages.includes(currentRoute)) {
+      // If user has completed onboarding, redirect to appropriate home screen
+      if (currentUser && hasCompletedOnboarding()) {
+        console.log('🔄 User has completed onboarding but is on onboarding page - redirecting to home');
+        if (userData.roles && userData.roles.includes('tasker')) {
+          console.log('✅ Redirecting to PerformerHome');
+          return 'PerformerHome';
+        } else if (userData.roles && userData.roles.includes('poster')) {
+          console.log('✅ Redirecting to PosterHome');
+          return 'PosterHome';
+        }
+      }
+      // If onboarding not complete, allow staying on onboarding page
       console.log('✅ On onboarding page - allowing it:', currentRoute);
       return currentRoute;
     }
@@ -319,12 +477,13 @@ const SimpleNavigation: React.FC = () => {
       return currentRoute;
     }
     
-    // If we're on home screens and user has roles (even without location), allow them
+    // If we're on home screens and user has roles but no location, redirect to location setup
     if ((currentRoute === 'PerformerHome' || currentRoute === 'PosterHome') && 
         userData && userData.roles && userData.roles.length > 0 && 
-        userData.roles.some(role => role === 'tasker' || role === 'poster')) {
-      console.log('✅ On home screen with roles - allowing it (location can be set later)');
-      return currentRoute;
+        userData.roles.some(role => role === 'tasker' || role === 'poster') &&
+        (!userData.location || (typeof userData.location === 'object' && (!userData.location.lat || !userData.location.lng)))) {
+      console.log('🔄 User on home screen with roles but no location - redirecting to ChooseLocationMethod');
+      return 'ChooseLocationMethod';
     }
     
     // If not authenticated, allow access to auth screens
@@ -408,16 +567,6 @@ const SimpleNavigation: React.FC = () => {
     }
     
     // If onboarding is complete, allow access to all screens
-    // But if user is on Landing and has completed onboarding, redirect to appropriate home screen
-    if (currentRoute === 'Landing' && hasCompletedOnboarding()) {
-      // Determine which home screen to show based on user's role
-      if (userData.roles && userData.roles.includes('tasker')) {
-        return 'PerformerHome';
-      } else if (userData.roles && userData.roles.includes('poster')) {
-        return 'PosterHome';
-      }
-    }
-    
     return currentRoute;
   };
 
@@ -428,9 +577,29 @@ const SimpleNavigation: React.FC = () => {
     if (correctRoute !== currentRoute) {
       console.log('🔄 Route redirect:', currentRoute, '→', correctRoute);
       
+      // Don't redirect if we're showing loading state
+      if (correctRoute === 'Loading') {
+        console.log('⏳ Skipping redirect - showing loading state');
+        return;
+      }
+      
+      // Don't redirect if we're already on loading state, UNLESS user has completed onboarding
+      if (currentRoute === 'Loading' && !hasCompletedOnboarding()) {
+        console.log('⏳ Skipping redirect - already on loading state and onboarding not complete');
+        return;
+      }
+      
       // Don't redirect if we're on Landing page and auth is still loading
-      if (currentRoute === 'Landing' && loading) {
+      // UNLESS the user is authenticated and has completed onboarding
+      if (currentRoute === 'Landing' && loading && (!currentUser || !hasCompletedOnboarding())) {
         console.log('⏳ Skipping redirect - on Landing and auth still loading');
+        return;
+      }
+      
+      // Don't redirect if we're in loading state and session restoration is in progress
+      const session = sessionManager.getSession();
+      if (currentRoute === 'Loading' && session.isAuthenticated && (!currentUser || !userData)) {
+        console.log('⏳ Skipping redirect - session restoration in progress');
         return;
       }
       
@@ -439,7 +608,7 @@ const SimpleNavigation: React.FC = () => {
         syncUrlForRedirect(correctRoute);
       }, 100);
     }
-  }, [correctRoute, currentRoute, syncUrlForRedirect, loading]);
+  }, [correctRoute, currentRoute, syncUrlForRedirect, loading, currentUser, hasCompletedOnboarding, userData]);
 
   // Debug logging
   useEffect(() => {
@@ -466,6 +635,11 @@ const SimpleNavigation: React.FC = () => {
   }, [currentRoute, correctRoute, currentUser, userData, loading, hasCompletedOnboarding]);
 
   const renderScreen = () => {
+    // Show loading screen while auth is loading
+    if (correctRoute === 'Loading') {
+      return <LoadingScreen />;
+    }
+    
     // For web platform, use WebLanding for the Landing route
     if (Platform.OS === 'web' && correctRoute === 'Landing') {
       return <WebLanding />;
