@@ -1,41 +1,41 @@
 {
   "short_name": "Extrahand",
   "name": "Extrahand - Task Management Platform",
-  "description": "Connect with skilled professionals for your tasks and projects",
+  "description": "Connect with skilled professionals for your tasks and projects. Post tasks, find experts, and get things done efficiently.",
   "icons": [
     {
-      "src": "favicon.ico",
+      "src": "/favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "/logo192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "logo512.png",
+      "src": "/logo512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#f9b233",
   "background_color": "#ffffff",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
-  "categories": ["business", "productivity", "social"],
+  "categories": ["business", "productivity", "utilities"],
   "screenshots": [
     {
-      "src": "screenshot1.png",
+      "src": "/screenshot1.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide"
     },
     {
-      "src": "screenshot2.png",
+      "src": "/screenshot2.png",
       "sizes": "750x1334",
       "type": "image/png",
       "form_factor": "narrow"
