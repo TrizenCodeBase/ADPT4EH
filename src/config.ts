@@ -2,10 +2,10 @@
 // CHANGE THIS FIELD TO SWITCH BETWEEN ENVIRONMENTS
 
 // For LOCALHOST development:
-export const API_BASE_URL = 'http://localhost:4000';
+// export const API_BASE_URL = 'http://localhost:4000';
 
 // For PRODUCTION:
-// export const API_BASE_URL = 'https://extrahandbackend.llp.trizenventures.com';
+export const API_BASE_URL = 'https://extrahandbackend.llp.trizenventures.com';
 
 // Environment detection
 export const isDevelopment = API_BASE_URL.includes('localhost') ||
