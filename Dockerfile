@@ -45,7 +45,8 @@ RUN npm run build:web
 RUN apk add --no-cache nginx curl
 
 # Copy built files to nginx directory (correct path)
-RUN cp -r dist/* /usr/share/nginx/html/ && \
+RUN mkdir -p /usr/share/nginx/html && \
+    cp -r dist/* /usr/share/nginx/html/ && \
     rm -rf dist node_modules package*.json
 
 # Copy nginx configuration
