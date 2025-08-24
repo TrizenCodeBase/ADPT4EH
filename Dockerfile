@@ -1,27 +1,23 @@
-# Multi-stage build for production - Optimized for speed and size
-FROM node:20-alpine AS deps
+# Optimized Dockerfile for ExtraHand React Native Web App
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files first for better layer caching
+# Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies with better caching
-# Use npm ci for faster, more reliable installs
-RUN npm ci --prefer-offline --no-audit
+# Install dependencies with aggressive network timeout settings
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm config set fetch-timeout 600000 && \
+    npm config set fetch-retry-mintimeout 10000 && \
+    npm config set fetch-retry-maxtimeout 60000 && \
+    npm config set fetch-retries 10 && \
+    npm install --prefer-offline --no-audit --network-timeout=600000 --maxsockets=1 --verbose
 
-# Build stage
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-# Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-
-# Copy source code (excluding files in .dockerignore)
+# Copy source code
 COPY . .
 
-# Set build-time environment variables
+# Set environment variables
 ARG REACT_APP_FIREBASE_API_KEY
 ARG REACT_APP_FIREBASE_AUTH_DOMAIN
 ARG REACT_APP_FIREBASE_PROJECT_ID
@@ -32,7 +28,6 @@ ARG REACT_APP_FIREBASE_MEASUREMENT_ID
 ARG NODE_ENV=production
 ARG REACT_APP_ENV=production
 
-# Set as environment variables for the build process
 ENV REACT_APP_FIREBASE_API_KEY=$REACT_APP_FIREBASE_API_KEY
 ENV REACT_APP_FIREBASE_AUTH_DOMAIN=$REACT_APP_FIREBASE_AUTH_DOMAIN
 ENV REACT_APP_FIREBASE_PROJECT_ID=$REACT_APP_FIREBASE_PROJECT_ID
@@ -46,22 +41,18 @@ ENV REACT_APP_ENV=$REACT_APP_ENV
 # Build the application
 RUN npm run build:web
 
-# Production stage - Use nginx:alpine for smaller size
-FROM nginx:alpine AS production
+# Install nginx and curl for serving and health checks
+RUN apk add --no-cache nginx curl
 
-# Install curl for health checks (minimal installation)
-RUN apk add --no-cache --virtual .build-deps curl && \
-    rm -rf /var/cache/apk/*
-
-# Copy built files from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Copy built files to nginx directory (correct path)
+RUN cp -r dist/* /usr/share/nginx/html/ && \
+    rm -rf dist node_modules package*.json
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Create necessary directories with proper permissions
-RUN mkdir -p /var/cache/nginx /var/log/nginx /tmp/nginx /run && \
-    chown -R nginx:nginx /var/cache/nginx /var/log/nginx /tmp/nginx /run
+# Create necessary nginx directories
+RUN mkdir -p /var/cache/nginx /var/log/nginx /tmp/nginx /run
 
 # Expose port 80
 EXPOSE 80

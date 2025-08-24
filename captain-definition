@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "dockerfilePath": "./Dockerfile.simple",
+  "dockerfilePath": "./Dockerfile",
   "buildArguments": {
     "REACT_APP_FIREBASE_API_KEY": "AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw",
     "REACT_APP_FIREBASE_AUTH_DOMAIN": "extrahand-app.firebaseapp.com",
