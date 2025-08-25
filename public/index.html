@@ -54,11 +54,10 @@
     <meta name="twitter:site" content="@extrahand">
     <meta name="twitter:creator" content="@extrahand">
     
-    <!-- Security Headers -->
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="DENY">
-    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
-    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+         <!-- Security Headers -->
+     <meta http-equiv="X-Content-Type-Options" content="nosniff">
+     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     
     <!-- Performance and Caching -->
     <meta http-equiv="Cache-Control" content="public, max-age=31536000">
@@ -86,5 +85,20 @@
     <div id="app-root"></div>
     <!-- reCAPTCHA container for Firebase Phone Auth -->
     <div id="recaptcha-container" style="position:fixed;bottom:8px;left:8px;z-index:9999;"></div>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('Service Worker registered successfully:', registration);
+            })
+            .catch((error) => {
+              console.log('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
