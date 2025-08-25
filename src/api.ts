@@ -6,6 +6,10 @@ const API_BASE = API_BASE_URL;
 
 async function fetchWithAuth(path: string, init: RequestInit = {}) {
   try {
+    console.log('🔧 fetchWithAuth called with path:', path);
+    console.log('🔧 API_BASE:', API_BASE);
+    console.log('🔧 Full URL:', `${API_BASE}${path}`);
+    
     const user = auth.currentUser;
     
     // Always try to get authentication token if user is logged in
@@ -26,6 +30,10 @@ async function fetchWithAuth(path: string, init: RequestInit = {}) {
     } else {
       console.log('👤 No user logged in, proceeding without authentication');
     }
+    
+    console.log('🔧 Making fetch request to:', `${API_BASE}${path}`);
+    console.log('🔧 Request init:', init);
+    console.log('🔧 Headers:', authHeaders);
     
     const res = await fetch(`${API_BASE}${path}`, {
       ...init,
@@ -50,19 +58,56 @@ async function fetchWithAuth(path: string, init: RequestInit = {}) {
 // Fallback function for development when backend is not available
 async function fetchWithFallback(path: string, init: RequestInit = {}) {
   try {
-    return await fetchWithAuth(path, init);
+    console.log('🔧 fetchWithFallback called with path:', path);
+    const result = await fetchWithAuth(path, init);
+    console.log('🔧 fetchWithFallback success:', result);
+    return result;
   } catch (error) {
+    console.log('🔧 fetchWithFallback error:', error);
     if (isDevelopment) {
       console.warn('🔄 Backend not available, using fallback data');
+      console.log('🔧 Path:', path);
+      console.log('🔧 Init:', init);
       // Return mock data for development
-      return getMockData(path);
+      const mockData = getMockData(path, init);
+      console.log('🔧 Returning mock data:', mockData);
+      return mockData;
     }
     throw error;
   }
 }
 
 // Mock data for development - matches MongoDB schema
-function getMockData(path: string) {
+function getMockData(path: string, init?: RequestInit) {
+  console.log('🔧 getMockData called with path:', path, 'init:', init);
+  // For development, use localStorage to persist mock data
+  const STORAGE_KEY = 'extrahand_mock_profile_data';
+  
+  // Helper function to get stored profile data
+  const getStoredProfileData = () => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : null;
+      } catch (error) {
+        console.warn('Failed to parse stored profile data:', error);
+        return null;
+      }
+    }
+    return null;
+  };
+  
+  // Helper function to store profile data
+  const storeProfileData = (data: any) => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        console.log('💾 Profile data saved to localStorage');
+      } catch (error) {
+        console.warn('Failed to save profile data to localStorage:', error);
+      }
+    }
+  };
   if (path.includes('/api/v1/tasks')) {
     return {
       tasks: [
@@ -169,7 +214,61 @@ function getMockData(path: string) {
     };
   }
   
+  if (path.includes('/api/v1/profiles') && init?.method === 'POST') {
+    // Mock response for profile save
+    console.log('🔧 Mock profile save response - handler found!');
+    
+    // Parse the request body to get the actual data being saved
+    let profileData;
+    try {
+      profileData = JSON.parse(init.body as string);
+      console.log('🔧 Parsed profile data:', profileData);
+    } catch (error) {
+      console.error('🔧 Failed to parse profile data:', error);
+      profileData = {};
+    }
+    
+    // Create a mock response with the actual data that was sent
+    const mockResponse = {
+      _id: 'mock-profile-saved',
+      uid: 'mock-user-saved',
+      name: profileData.name || 'User Saved',
+      email: profileData.email || 'user@example.com',
+      phone: profileData.phone || '+919876543210',
+      roles: profileData.roles || ['tasker'],
+      userType: profileData.userType || 'individual',
+      skills: profileData.skills || ['cleaning', 'plumbing'],
+      rating: 4.5,
+      totalReviews: 10,
+      isVerified: true,
+      location: profileData.location || {
+        type: 'Point',
+        coordinates: [78.4867, 17.3850],
+        address: 'Hyderabad, Telangana, India'
+      },
+      business: profileData.business || null,
+      agreeUpdates: profileData.agreeUpdates || false,
+      agreeTerms: profileData.agreeTerms || false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    console.log('🔧 Returning mock response with saved data:', mockResponse);
+    
+    // Store the profile data in localStorage for persistence
+    storeProfileData(mockResponse);
+    
+    return mockResponse;
+  }
+  
   if (path.includes('/api/v1/profiles/me')) {
+    // First, check if we have stored profile data from previous saves
+    const storedProfileData = getStoredProfileData();
+    if (storedProfileData) {
+      console.log('🔧 Returning stored profile data from localStorage:', storedProfileData);
+      return storedProfileData;
+    }
+    
     // Check if user has completed onboarding by checking session manager
     // This is a fallback for when backend is not available
     try {
@@ -275,10 +374,25 @@ function getMockData(path: string) {
   return { tasks: [] };
 }
 
+// Development utility function to clear stored profile data
+export const clearMockProfileData = () => {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    localStorage.removeItem('extrahand_mock_profile_data');
+    console.log('🧹 Cleared mock profile data from localStorage');
+  }
+};
+
 export const api = {
   // Profile management
   upsertProfile(body: any) {
-    return fetchWithFallback('/api/v1/profiles', { method: 'POST', body: JSON.stringify(body) });
+    console.log('🔧 upsertProfile called with body:', body);
+    console.log('🔧 API_BASE_URL:', API_BASE_URL);
+    console.log('🔧 auth.currentUser:', auth.currentUser);
+    console.log('🔧 auth.currentUser?.uid:', auth.currentUser?.uid);
+    console.log('🔧 About to call fetchWithFallback...');
+    const result = fetchWithFallback('/api/v1/profiles', { method: 'POST', body: JSON.stringify(body) });
+    console.log('🔧 upsertProfile result:', result);
+    return result;
   },
   me() {
     return fetchWithFallback('/api/v1/profiles/me');

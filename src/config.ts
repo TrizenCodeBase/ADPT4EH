@@ -1,14 +1,11 @@
 // Configuration file for easy environment switching
 // CHANGE THIS FIELD TO SWITCH BETWEEN ENVIRONMENTS
 
-// For LOCALHOST development:
-// export const API_BASE_URL = 'http://localhost:4000';
-
-// For PRODUCTION:
-export const API_BASE_URL = 'https://extrahandbackend.llp.trizenventures.com';
+// Use environment variable with fallback
+export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://extrahandbackend.llp.trizenventures.com';
 
 // Environment detection
-export const isDevelopment = API_BASE_URL.includes('localhost') ||
+export const isDevelopment = process.env.REACT_APP_ENV === 'development' ||
   (typeof window !== 'undefined' && window.location.hostname === 'localhost');
 
 // Firebase configuration (same for both environments)

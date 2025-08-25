@@ -85,6 +85,13 @@ const ProfileScreen: React.FC = () => {
   };
 
   const handleSaveProfile = async () => {
+    console.log('🔧 handleSaveProfile called!');
+    console.log('🔧 firstName:', firstName);
+    console.log('🔧 lastName:', lastName);
+    console.log('🔧 currentUser:', currentUser);
+    console.log('🔧 currentUser?.uid:', currentUser?.uid);
+    console.log('🔧 userData:', userData);
+    
     if (!firstName || !lastName) {
       Alert.alert('Error', 'Please fill in your first and last name.');
       return;
@@ -92,6 +99,18 @@ const ProfileScreen: React.FC = () => {
 
     try {
       setSaving(true);
+      
+      console.log('🔧 Form values:');
+      console.log('🔧 firstName:', firstName);
+      console.log('🔧 lastName:', lastName);
+      console.log('🔧 email:', email);
+      console.log('🔧 phone:', phone);
+      console.log('🔧 location:', location);
+      console.log('🔧 roles:', roles);
+      console.log('🔧 userType:', userType);
+      console.log('🔧 skills:', skills);
+      console.log('🔧 photoURL:', photoURL);
+      console.log('🔧 description:', description);
 
       const profileData = {
         name: `${firstName} ${lastName}`.trim(),
@@ -108,19 +127,25 @@ const ProfileScreen: React.FC = () => {
         userType: userType,
         skills: skills,
         photoURL: photoURL,
+        agreeUpdates: true, // Required by backend
+        agreeTerms: true,   // Required by backend
         business: userType === 'business' ? {
           name: `${firstName} ${lastName}`,
           description: description
         } : null
       };
 
-      await api.upsertProfile(profileData);
+      console.log('💾 Saving profile data:', profileData);
+      const result = await api.upsertProfile(profileData);
+      console.log('✅ Profile save result:', result);
+      
       await refreshUserData();
       
       Alert.alert('Success', 'Profile saved successfully!');
     } catch (error: any) {
-      console.error('Error saving profile:', error);
-      Alert.alert('Error', error.message || 'Failed to save profile');
+      console.error('❌ Error saving profile:', error);
+      const errorMessage = error.message || 'Failed to save profile';
+      Alert.alert('Error', errorMessage);
     } finally {
       setSaving(false);
     }
@@ -525,7 +550,10 @@ const ProfileScreen: React.FC = () => {
               <View style={styles.mobileActionButtons}>
                 <TouchableOpacity 
                   style={[styles.mobileSaveButton, saving && styles.mobileSaveButtonDisabled]} 
-                  onPress={handleSaveProfile}
+                  onPress={() => {
+                    console.log('🔧 Save button pressed!');
+                    handleSaveProfile();
+                  }}
                   disabled={saving}
                 >
                   {saving ? (
@@ -851,7 +879,10 @@ const ProfileScreen: React.FC = () => {
               <View style={styles.desktopActionButtons}>
                 <TouchableOpacity 
                   style={[styles.desktopSaveButton, saving && styles.desktopSaveButtonDisabled]} 
-                  onPress={handleSaveProfile}
+                  onPress={() => {
+                    console.log('🔧 Desktop save button pressed!');
+                    handleSaveProfile();
+                  }}
                   disabled={saving}
                 >
                   {saving ? (

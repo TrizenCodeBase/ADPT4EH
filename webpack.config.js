@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
 
 // Load environment variables from appropriate .env file
@@ -78,6 +79,13 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/index.html',
     }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'public/manifest.json', to: 'manifest.json' },
+        { from: 'public/favicon.ico', to: 'favicon.ico' },
+        { from: 'public/sw.js', to: 'sw.js' },
+      ],
+    }),
     new webpack.DefinePlugin({
       'process.env': {
         REACT_APP_FIREBASE_API_KEY: JSON.stringify(process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw'),
@@ -96,6 +104,7 @@ module.exports = {
   devServer: {
     static: {
       directory: path.join(__dirname, 'dist'),
+      publicPath: '/',
     },
     hot: true,
     port: 8080,
@@ -110,6 +119,23 @@ module.exports = {
         errors: true,
         warnings: false,
       },
+    },
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
+    setupMiddlewares: (middlewares, devServer) => {
+      // Add custom middleware for proper MIME types
+      devServer.app.get('/sw.js', (req, res) => {
+        res.setHeader('Content-Type', 'application/javascript');
+        res.sendFile(path.join(__dirname, 'public/sw.js'));
+      });
+      
+      devServer.app.get('/manifest.json', (req, res) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.sendFile(path.join(__dirname, 'public/manifest.json'));
+      });
+      
+      return middlewares;
     },
   },
 };
