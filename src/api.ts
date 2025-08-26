@@ -1,5 +1,5 @@
 import { auth } from './firebase';
-import { API_BASE_URL, isDevelopment } from './config';
+import { API_BASE_URL } from './config';
 
 // Use the API_BASE_URL from config
 const API_BASE = API_BASE_URL;
@@ -64,20 +64,15 @@ async function fetchWithFallback(path: string, init: RequestInit = {}) {
     return result;
   } catch (error) {
     console.log('🔧 fetchWithFallback error:', error);
-    if (isDevelopment) {
-      console.warn('🔄 Backend not available, using fallback data');
-      console.log('🔧 Path:', path);
-      console.log('🔧 Init:', init);
-      // Return mock data for development
-      const mockData = getMockData(path, init);
-      console.log('🔧 Returning mock data:', mockData);
-      return mockData;
-    }
+    // Temporarily disable all fallbacks to debug the issue
+    console.error('❌ API call failed - not using any fallback data');
     throw error;
   }
 }
 
 // Mock data for development - matches MongoDB schema
+// Temporarily disabled for debugging
+/*
 function getMockData(path: string, init?: RequestInit) {
   console.log('🔧 getMockData called with path:', path, 'init:', init);
   // For development, use localStorage to persist mock data
@@ -373,29 +368,36 @@ function getMockData(path: string, init?: RequestInit) {
   
   return { tasks: [] };
 }
+*/
 
 // Development utility function to clear stored profile data
+// Temporarily disabled for debugging
+/*
 export const clearMockProfileData = () => {
   if (typeof window !== 'undefined' && window.localStorage) {
     localStorage.removeItem('extrahand_mock_profile_data');
     console.log('🧹 Cleared mock profile data from localStorage');
   }
 };
+*/
 
 export const api = {
   // Profile management
-  upsertProfile(body: any) {
+  async upsertProfile(body: any) {
     console.log('🔧 upsertProfile called with body:', body);
     console.log('🔧 API_BASE_URL:', API_BASE_URL);
     console.log('🔧 auth.currentUser:', auth.currentUser);
     console.log('🔧 auth.currentUser?.uid:', auth.currentUser?.uid);
     console.log('🔧 About to call fetchWithFallback...');
-    const result = fetchWithFallback('/api/v1/profiles', { method: 'POST', body: JSON.stringify(body) });
+    const result = await fetchWithFallback('/api/v1/profiles', { method: 'POST', body: JSON.stringify(body) });
     console.log('🔧 upsertProfile result:', result);
     return result;
   },
   me() {
     return fetchWithFallback('/api/v1/profiles/me');
+  },
+  getOnboardingStatus() {
+    return fetchWithFallback('/api/v1/profiles/onboarding-status');
   },
 
   // Task management

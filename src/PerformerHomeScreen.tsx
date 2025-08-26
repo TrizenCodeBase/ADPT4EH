@@ -6,6 +6,7 @@ import { api } from './api';
 import Footer from './Footer';
 import MobileNavBar from './components/MobileNavBar';
 import DevModeBanner from './components/DevModeBanner';
+import RoleToggle from './components/RoleToggle';
 import { FEATURE_FLAGS } from './config';
 
 const PRIMARY_YELLOW = '#f9b233';
@@ -403,6 +404,7 @@ const PerformerHomeScreen = () => {
           
           {/* Right: Profile Icon and Logout */}
           <View style={styles.desktopRightMenu}>
+            <RoleToggle />
             <TouchableOpacity 
               style={styles.desktopMenuLink}
               onPress={() => navigation.navigate('Chat')}

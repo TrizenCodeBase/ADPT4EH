@@ -92,10 +92,13 @@ const ProfileScreen: React.FC = () => {
     console.log('🔧 currentUser?.uid:', currentUser?.uid);
     console.log('🔧 userData:', userData);
     
+    console.log('🔧 Validation check - firstName:', !!firstName, 'lastName:', !!lastName);
     if (!firstName || !lastName) {
+      console.log('🔧 Validation failed - showing alert');
       Alert.alert('Error', 'Please fill in your first and last name.');
       return;
     }
+    console.log('🔧 Validation passed - continuing with save');
 
     try {
       setSaving(true);
@@ -136,16 +139,32 @@ const ProfileScreen: React.FC = () => {
       };
 
       console.log('💾 Saving profile data:', profileData);
+      console.log('🔧 About to call api.upsertProfile...');
+      console.log('🔧 api object:', api);
+      console.log('🔧 api.upsertProfile function:', api.upsertProfile);
       const result = await api.upsertProfile(profileData);
       console.log('✅ Profile save result:', result);
       
       await refreshUserData();
       
-      Alert.alert('Success', 'Profile saved successfully!');
+      // Show success message - use different approach for web vs mobile
+      if (Platform.OS === 'web') {
+        // For web, use a more visible notification
+        alert('✅ Profile saved successfully!');
+      } else {
+        Alert.alert('Success', 'Profile saved successfully!');
+      }
     } catch (error: any) {
       console.error('❌ Error saving profile:', error);
       const errorMessage = error.message || 'Failed to save profile';
-      Alert.alert('Error', errorMessage);
+      
+      // Show error message - use different approach for web vs mobile
+      if (Platform.OS === 'web') {
+        // For web, use a more visible notification
+        alert(`❌ Error: ${errorMessage}`);
+      } else {
+        Alert.alert('Error', errorMessage);
+      }
     } finally {
       setSaving(false);
     }

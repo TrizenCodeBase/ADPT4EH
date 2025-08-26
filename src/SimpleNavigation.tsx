@@ -272,6 +272,13 @@ const SimpleNavigation: React.FC = () => {
       return false;
     }
     
+    // First, check if backend has onboarding status
+    if (userData.onboardingStatus) {
+      console.log('🔍 Using backend onboarding status:', userData.onboardingStatus);
+      return userData.onboardingStatus.isCompleted;
+    }
+    
+    // Fallback to frontend logic for backward compatibility
     // Check if user has location and roles set
     // Location can be an object with lat/lng/address or coordinates array
     const hasLocation = !!userData.location && (
@@ -290,7 +297,7 @@ const SimpleNavigation: React.FC = () => {
     const hasRoles = userData.roles && userData.roles.length > 0 && 
                     userData.roles.some(role => role === 'tasker' || role === 'poster');
     
-    console.log('🔍 Onboarding Check:', {
+    console.log('🔍 Onboarding Check (fallback):', {
       hasLocation,
       hasRoles,
       location: userData.location,
@@ -307,7 +314,7 @@ const SimpleNavigation: React.FC = () => {
     // User must have both roles AND location to complete onboarding
     // This ensures users complete the full onboarding flow
     const result = hasRoles && hasLocation;
-    console.log('🔍 hasCompletedOnboarding result:', result);
+    console.log('🔍 hasCompletedOnboarding result (fallback):', result);
     return result;
   }, [currentUser, userData]);
 

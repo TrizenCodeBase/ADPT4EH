@@ -14,6 +14,7 @@ import { useNavigation } from './SimpleNavigation';
 import { useAuth } from './AuthContext';
 import Footer from './Footer';
 import MobileNavBar from './components/MobileNavBar';
+import RoleToggle from './components/RoleToggle';
 
 
 
@@ -353,6 +354,7 @@ const PosterHomeScreen: React.FC = () => {
           
           {/* Right: Profile Icon and Logout */}
           <View style={styles.desktopRightMenu}>
+            <RoleToggle />
             <TouchableOpacity 
               style={styles.desktopMenuLink}
               onPress={() => navigation.navigate('Chat')}

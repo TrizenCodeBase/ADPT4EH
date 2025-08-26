@@ -10,7 +10,7 @@ const DARK = '#222';
 
 const RoleSelectionScreen = () => {
   const navigation = useNavigation();
-  const { refreshUserData } = useAuth();
+  const { refreshUserData, currentUser } = useAuth();
   const { setIsRoleSelectionInProgress } = useNavigation();
   const [goal, setGoal] = useState('');
   const [userType, setUserType] = useState('');
@@ -122,11 +122,12 @@ const RoleSelectionScreen = () => {
                  // Save complete profile data to backend API
                  await api.upsertProfile({ 
                    name: 'User', 
+                   email: currentUser?.email || 'user@example.com', // Add email from current user
                    roles,
                    userType,
                    agreeUpdates,
                    agreeTerms,
-                                       location: locationData ? {
+                   location: locationData ? {
                       type: 'Point',
                       coordinates: [locationData.longitude, locationData.latitude],
                       address: locationData.address
@@ -265,6 +266,7 @@ const RoleSelectionScreen = () => {
                                 // Save complete profile data to backend API
                  await api.upsertProfile({ 
                    name: 'User', 
+                   email: currentUser?.email || 'user@example.com', // Add email from current user
                    roles,
                    userType,
                    agreeUpdates,

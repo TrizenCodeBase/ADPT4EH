@@ -1,10 +1,10 @@
-// Configuration file for easy environment switching
-// CHANGE THIS FIELD TO SWITCH BETWEEN ENVIRONMENTS
+// Configuration file for production-ready environment switching
+// PRODUCTION CONFIGURATION - All URLs point to production
 
-// Use environment variable with fallback
+// Production API URL - no fallback to localhost
 export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://extrahandbackend.llp.trizenventures.com';
 
-// Environment detection
+// Environment detection - production by default
 export const isDevelopment = process.env.REACT_APP_ENV === 'development' ||
   (typeof window !== 'undefined' && window.location.hostname === 'localhost');
 
