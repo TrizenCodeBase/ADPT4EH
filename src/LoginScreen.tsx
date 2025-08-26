@@ -14,7 +14,8 @@ const AppleIcon = () => (
   <View style={{ width: 24, height: 24, justifyContent: 'center', alignItems: 'center' }}>
     <Image 
       source={require('../assets/social-svg/icons8-apple-inc-48.png')}
-      style={{ width: 24, height: 24, resizeMode: 'contain' }}
+      style={{ width: 24, height: 24 }}
+      resizeMode="contain"
     />
   </View>
 );
@@ -23,7 +24,8 @@ const GoogleIcon = () => (
   <View style={{ width: 24, height: 24, justifyContent: 'center', alignItems: 'center' }}>
     <Image 
       source={require('../assets/social-svg/icons8-google-48.png')}
-      style={{ width: 24, height: 24, resizeMode: 'contain' }}
+      style={{ width: 24, height: 24 }}
+      resizeMode="contain"
     />
   </View>
 );
@@ -32,7 +34,8 @@ const FacebookIcon = () => (
   <View style={{ width: 24, height: 24, justifyContent: 'center', alignItems: 'center' }}>
     <Image 
       source={require('../assets/social-svg/icons8-facebook-48.png')}
-      style={{ width: 44, height: 54, resizeMode: 'contain' }}
+      style={{ width: 44, height: 54 }}
+      resizeMode="contain"
     />
   </View>
 );

@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   Platform,
   Dimensions,
   Image,
@@ -14,7 +13,7 @@ import { useNavigation } from './SimpleNavigation';
 import { useAuth } from './AuthContext';
 import Footer from './Footer';
 import MobileNavBar from './components/MobileNavBar';
-import RoleToggle from './components/RoleToggle';
+import ProfessionalRoleToggle from './components/ProfessionalRoleToggle';
 
 
 
@@ -25,7 +24,7 @@ const categories = [
 const PosterHomeScreen: React.FC = () => {
   const navigation = useNavigation();
   const { logout } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [_searchQuery, _setSearchQuery] = useState('');
   const [isMobileView, setIsMobileView] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
   const dropdownRef = useRef<any>(null);
@@ -251,7 +250,7 @@ const PosterHomeScreen: React.FC = () => {
             >
               {mostBookedServices.map((service) => (
                 <TouchableOpacity key={service.id} style={styles.mobileServiceCard}>
-                  <Image source={service.image} style={styles.mobileServiceImage} />
+                  <Image source={service.image} style={styles.mobileServiceImage} resizeMode="cover" />
                   <View style={styles.mobileServiceContent}>
                     <Text style={styles.mobileServiceTitle}>Title: {service.title}</Text>
                     <View style={styles.mobileServiceRating}>
@@ -298,8 +297,7 @@ const PosterHomeScreen: React.FC = () => {
           <View style={styles.desktopLogoSection}>
             <Image
               source={require('../assets/images/logo.png')}
-              style={styles.desktopLogoImage}
-              resizeMode="contain"
+              style={[styles.desktopLogoImage, { resizeMode: 'contain' }]}
             />
             <Text style={styles.desktopLogoText}>Extrahand</Text>
           </View>
@@ -354,7 +352,7 @@ const PosterHomeScreen: React.FC = () => {
           
           {/* Right: Profile Icon and Logout */}
           <View style={styles.desktopRightMenu}>
-            <RoleToggle />
+            <ProfessionalRoleToggle />
             <TouchableOpacity 
               style={styles.desktopMenuLink}
               onPress={() => navigation.navigate('Chat')}
@@ -653,7 +651,6 @@ const styles = StyleSheet.create({
   serviceImage: {
     width: '100%',
     height: 180,
-    resizeMode: 'cover',
   },
   serviceContent: {
     padding: 16,
@@ -948,7 +945,6 @@ const styles = StyleSheet.create({
   mobileServiceImage: {
     width: '100%',
     height: 160,
-    resizeMode: 'cover',
   },
   mobileServiceContent: {
     padding: 16,

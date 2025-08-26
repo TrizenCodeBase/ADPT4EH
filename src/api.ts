@@ -406,7 +406,10 @@ export const api = {
   },
   getTasks(params?: any) {
     const queryString = params ? `?${new URLSearchParams(params).toString()}` : '';
-    return fetchWithFallback(`/api/v1/tasks${queryString}`);
+    // Use dev endpoint if no user is logged in (for development)
+    const user = auth.currentUser;
+    const endpoint = user ? `/api/v1/tasks${queryString}` : `/api/v1/dev/tasks${queryString}`;
+    return fetchWithFallback(endpoint);
   },
   getTask(id: string) {
     return fetchWithFallback(`/api/v1/tasks/${id}`);

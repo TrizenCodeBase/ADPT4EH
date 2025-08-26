@@ -318,6 +318,8 @@ const SimpleNavigation: React.FC = () => {
     return result;
   }, [currentUser, userData]);
 
+
+
   // Determine the correct route based on authentication and onboarding status
   const getCorrectRoute = () => {
     console.log('🔍 getCorrectRoute called with:', {

@@ -76,14 +76,17 @@ const TaskPostingForm: React.FC = () => {
         const coordinates = getCoordinatesFromAddress(location);
         const taskData = {
           type: taskCategory,
-          description: `${taskTitle}\n\n${taskDescription}`,
+          title: taskTitle,
+          description: taskDescription,
           location: {
-            lat: coordinates.lat,
-            lng: coordinates.lng,
+            coordinates: [coordinates.lng, coordinates.lat], // [lng, lat] format for backend
             address: location,
           },
           preferredTime: dueDate && dueTime ? `${dueDate} ${dueTime}` : null,
-          budget: parseFloat(budget) || null,
+          budget: {
+            amount: parseFloat(budget) || 0,
+            currency: 'INR'
+          },
           skillsRequired: getSkillsForCategory(taskCategory),
         };
 

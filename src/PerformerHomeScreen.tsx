@@ -6,7 +6,7 @@ import { api } from './api';
 import Footer from './Footer';
 import MobileNavBar from './components/MobileNavBar';
 import DevModeBanner from './components/DevModeBanner';
-import RoleToggle from './components/RoleToggle';
+import ProfessionalRoleToggle from './components/ProfessionalRoleToggle';
 import { FEATURE_FLAGS } from './config';
 
 const PRIMARY_YELLOW = '#f9b233';
@@ -70,12 +70,17 @@ const PerformerHomeScreen = () => {
         ...filters
       };
 
-      // If user is logged in, get recommended tasks
-      if (currentUser && userData) {
-        params.recommend = 'true';
-      }
+      // Temporarily disable recommendations to test
+      // if (currentUser && userData && userData.skills && userData.skills.length > 0 && userData.location) {
+      //   params.recommend = 'true';
+      // }
 
+      console.log('🔍 Fetching tasks with params:', params);
+      console.log('🔍 User data:', userData);
+      console.log('🔍 User skills:', userData?.skills);
+      console.log('🔍 User location:', userData?.location);
       const response = await api.getTasks(params);
+      console.log('🔍 API response:', response);
       const fetchedTasks = response.tasks || response || [];
       
       // Transform tasks to match the expected format
@@ -184,11 +189,19 @@ const PerformerHomeScreen = () => {
     setSearchQuery('');
   };
 
-  // Initial data fetch
+  // Initial data fetch and refetch when component becomes active
   useEffect(() => {
     fetchTasks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Refetch tasks when user data changes (for recommendations)
+  useEffect(() => {
+    if (userData && currentUser) {
+      fetchTasks();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userData, currentUser]);
 
   // Check if we're on mobile web view
   useEffect(() => {
@@ -253,7 +266,7 @@ const PerformerHomeScreen = () => {
             onPress={() => setShowCategories(!showCategories)}
           >
             <Text style={[styles.mobileFilterText, selectedCategory && styles.mobileFilterTextActive]}>
-              {selectedCategory || 'Category'} {selectedCategory ? '✓' : '▼'}
+              {`${selectedCategory || 'Category'} ${selectedCategory ? '✓' : '▼'}`}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -309,9 +322,9 @@ const PerformerHomeScreen = () => {
                   <View style={styles.mobileTaskLeft}>
                     <Text style={styles.mobileTaskTitle}>{task.title}</Text>
                     <View style={styles.mobileTaskMetaRow}>
-                      <Text style={styles.mobileTaskMeta}>📍 {task.location}</Text>
-                      <Text style={styles.mobileTaskMeta}>📅 {task.date}</Text>
-                      {task.time ? <Text style={styles.mobileTaskMeta}>⏰ {task.time}</Text> : null}
+                      <Text style={styles.mobileTaskMeta}>{`📍 ${task.location}`}</Text>
+                      <Text style={styles.mobileTaskMeta}>{`📅 ${task.date}`}</Text>
+                      {task.time ? <Text style={styles.mobileTaskMeta}>{`⏰ ${task.time}`}</Text> : null}
                     </View>
                     <Text style={styles.mobileTaskStatus}>{task.status}</Text>
                   </View>
@@ -404,7 +417,7 @@ const PerformerHomeScreen = () => {
           
           {/* Right: Profile Icon and Logout */}
           <View style={styles.desktopRightMenu}>
-            <RoleToggle />
+            <ProfessionalRoleToggle />
             <TouchableOpacity 
               style={styles.desktopMenuLink}
               onPress={() => navigation.navigate('Chat')}
@@ -501,11 +514,11 @@ const PerformerHomeScreen = () => {
                   <View style={styles.desktopTaskContent}>
                     <View style={styles.desktopTaskLeft}>
                       <Text style={styles.desktopTaskTitle}>{task.title}</Text>
-                      <View style={styles.desktopTaskMetaRow}>
-                        <Text style={styles.desktopTaskMeta}>📍 {task.location}</Text>
-                        <Text style={styles.desktopTaskMeta}>📅 {task.date}</Text>
-                        {task.time ? <Text style={styles.desktopTaskMeta}>⏰ {task.time}</Text> : null}
-                      </View>
+                                          <View style={styles.desktopTaskMetaRow}>
+                      <Text style={styles.desktopTaskMeta}>{`📍 ${task.location}`}</Text>
+                      <Text style={styles.desktopTaskMeta}>{`📅 ${task.date}`}</Text>
+                      {task.time ? <Text style={styles.desktopTaskMeta}>{`⏰ ${task.time}`}</Text> : null}
+                    </View>
                       <Text style={styles.desktopTaskStatus}>{task.status}</Text>
                     </View>
                     <View style={styles.desktopTaskRight}>

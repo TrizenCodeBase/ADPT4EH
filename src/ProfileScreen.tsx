@@ -16,6 +16,7 @@ import { useNavigation } from './SimpleNavigation';
 import { useAuth } from './AuthContext';
 import { api } from './api';
 import MobileNavBar from './components/MobileNavBar';
+import ProfessionalRoleToggle from './components/ProfessionalRoleToggle';
 
 const PRIMARY_YELLOW = '#f9b233';
 const PRIMARY_BLUE = '#2563eb';
@@ -284,6 +285,15 @@ const ProfileScreen: React.FC = () => {
       <View style={styles.mobileContainer}>
         {/* Mobile Navigation Bar */}
         <MobileNavBar title="Profile" showBackButton={true} />
+
+        {/* Professional Role Toggle - Top Right Corner */}
+        <ProfessionalRoleToggle 
+          compact={true} 
+          onRoleChange={(newRole) => {
+            console.log('🔄 Role changed in ProfileScreen (mobile):', newRole);
+            // The navigation will be handled by SimpleNavigation
+          }}
+        />
 
         {/* Main Content */}
         <ScrollView style={styles.mobileScrollContent} showsVerticalScrollIndicator={false}>
@@ -620,6 +630,15 @@ const ProfileScreen: React.FC = () => {
            <Text style={styles.desktopAddIcon}>+</Text>
          </TouchableOpacity>
       </View>
+
+      {/* Professional Role Toggle - Top Right Corner */}
+      <ProfessionalRoleToggle 
+        compact={true} 
+        onRoleChange={(newRole) => {
+          console.log('🔄 Role changed in ProfileScreen (desktop):', newRole);
+          // The navigation will be handled by SimpleNavigation
+        }}
+      />
 
       {/* Main Content */}
       <ScrollView style={styles.desktopScrollContent} showsVerticalScrollIndicator={false}>
