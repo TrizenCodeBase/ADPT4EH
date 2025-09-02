@@ -14,20 +14,25 @@ import { useAuth } from '../contexts/AuthContext';
 import { api } from '../api';
 import { Task } from '../types/Task';
 import MyTasksScreen from './MyTasksScreen';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
 const PerformerHomeScreen: React.FC = () => {
   const { currentUser } = useAuth();
+  const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState<'available' | 'my-tasks'>('available');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    if (activeTab === 'available') {
-      fetchTasks();
-    }
+    fetchTasks();
+  }, []);
+
+  // Monitor activeTab changes
+  useEffect(() => {
+    console.log('🔍 PerformerHomeScreen: activeTab changed to:', activeTab);
   }, [activeTab]);
 
   const fetchTasks = async () => {
@@ -53,7 +58,7 @@ const PerformerHomeScreen: React.FC = () => {
 
   const handleTaskPress = (task: Task) => {
     // Navigate to task details screen
-    Alert.alert('Task Details', `View details for: ${task.title}`);
+    navigation.navigate('TaskDetail', { task });
   };
 
   const renderTaskItem = ({ item: task }: { item: Task }) => (
@@ -113,10 +118,17 @@ const PerformerHomeScreen: React.FC = () => {
   };
 
   const renderTabContent = () => {
+    console.log('🔍 PerformerHomeScreen: renderTabContent called');
+    console.log('🔍 PerformerHomeScreen: Active tab:', activeTab);
+    console.log('🔍 PerformerHomeScreen: activeTab === "my-tasks":', activeTab === 'my-tasks');
+    
     if (activeTab === 'my-tasks') {
+      console.log('🔍 PerformerHomeScreen: Rendering MyTasksScreen');
       return <MyTasksScreen />;
     }
 
+    console.log('🔍 PerformerHomeScreen: Rendering Available Tasks, count:', tasks.length);
+    
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
@@ -153,11 +165,20 @@ const PerformerHomeScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      {/* Debug Header */}
+      <View style={styles.debugHeader}>
+        <Text style={styles.debugText}>🔍 Active Tab: {activeTab} | Available Tasks Count: {tasks.length}</Text>
+      </View>
+      
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'available' && styles.activeTab]}
-          onPress={() => setActiveTab('available')}
+          onPress={() => {
+            console.log('🔍 Tab clicked: Available Tasks');
+            setActiveTab('available');
+            console.log('🔍 Active tab set to: available');
+          }}
         >
           <Text style={[styles.tabText, activeTab === 'available' && styles.activeTabText]}>
             Available Tasks
@@ -166,7 +187,11 @@ const PerformerHomeScreen: React.FC = () => {
         
         <TouchableOpacity
           style={[styles.tab, activeTab === 'my-tasks' && styles.activeTab]}
-          onPress={() => setActiveTab('my-tasks')}
+          onPress={() => {
+            console.log('🔍 Tab clicked: My Tasks');
+            setActiveTab('my-tasks');
+            console.log('🔍 Active tab set to: my-tasks');
+          }}
         >
           <Text style={[styles.tabText, activeTab === 'my-tasks' && styles.activeTabText]}>
             My Tasks
@@ -184,6 +209,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+  },
+  debugHeader: {
+    backgroundColor: '#E0E0E0',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  debugText: {
+    fontSize: 14,
+    color: '#333',
   },
   tabContainer: {
     flexDirection: 'row',

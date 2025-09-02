@@ -48,6 +48,11 @@ const MyTasksScreen: React.FC = () => {
     navigation.navigate('EditTask', { task });
   };
 
+  const handleTaskPress = (task: Task) => {
+    // Navigate to task detail screen
+    navigation.navigate('TaskDetail', { task });
+  };
+
   const handleDeleteTask = (task: Task) => {
     Alert.alert(
       'Delete Task',
@@ -95,72 +100,74 @@ const MyTasksScreen: React.FC = () => {
   };
 
   const renderTaskItem = ({ item: task }: { item: Task }) => (
-    <View style={styles.taskCard}>
-      <View style={styles.taskHeader}>
-        <Text style={styles.taskTitle}>{task.title}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(task.status) }]}>
-          <Text style={styles.statusText}>{task.status.toUpperCase()}</Text>
-        </View>
-      </View>
-      
-      <Text style={styles.taskDescription} numberOfLines={2}>
-        {task.description}
-      </Text>
-      
-      <View style={styles.taskDetails}>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Budget:</Text>
-          <Text style={styles.detailValue}>₹{task.budget}</Text>
+    <TouchableOpacity onPress={() => handleTaskPress(task)}>
+      <View style={styles.taskCard}>
+        <View style={styles.taskHeader}>
+          <Text style={styles.taskTitle}>{task.title}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(task.status) }]}>
+            <Text style={styles.statusText}>{task.status.toUpperCase()}</Text>
+          </View>
         </View>
         
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Location:</Text>
-          <Text style={styles.detailValue}>{task.location?.city || 'N/A'}</Text>
+        <Text style={styles.taskDescription} numberOfLines={2}>
+          {task.description}
+        </Text>
+        
+        <View style={styles.taskDetails}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Budget:</Text>
+            <Text style={styles.detailValue}>₹{task.budget}</Text>
+          </View>
+          
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Location:</Text>
+            <Text style={styles.detailValue}>{task.location?.city || 'N/A'}</Text>
+          </View>
+          
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Category:</Text>
+            <Text style={styles.detailValue}>{task.category}</Text>
+          </View>
+          
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Posted:</Text>
+            <Text style={styles.detailValue}>
+              {new Date(task.createdAt).toLocaleDateString()}
+            </Text>
+          </View>
         </View>
         
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Category:</Text>
-          <Text style={styles.detailValue}>{task.category}</Text>
-        </View>
-        
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Posted:</Text>
-          <Text style={styles.detailValue}>
-            {new Date(task.createdAt).toLocaleDateString()}
-          </Text>
-        </View>
-      </View>
-      
-      <View style={styles.taskActions}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.editButton]}
-          onPress={() => handleEditTask(task)}
-        >
-          <Text style={styles.actionButtonText}>Edit</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[styles.actionButton, styles.deleteButton]}
-          onPress={() => handleDeleteTask(task)}
-          disabled={deletingTaskId === task._id}
-        >
-          {deletingTaskId === task._id ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <Text style={styles.actionButtonText}>Delete</Text>
-          )}
-        </TouchableOpacity>
-        
-        {task.status === 'open' && (
+        <View style={styles.taskActions}>
           <TouchableOpacity
-            style={[styles.actionButton, styles.statusButton]}
-            onPress={() => handleStatusChange(task._id, 'cancelled')}
+            style={[styles.actionButton, styles.editButton]}
+            onPress={() => handleEditTask(task)}
           >
-            <Text style={styles.actionButtonText}>Cancel</Text>
+            <Text style={styles.actionButtonText}>Edit</Text>
           </TouchableOpacity>
-        )}
+          
+          <TouchableOpacity
+            style={[styles.actionButton, styles.deleteButton]}
+            onPress={() => handleDeleteTask(task)}
+            disabled={deletingTaskId === task._id}
+          >
+            {deletingTaskId === task._id ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={styles.actionButtonText}>Delete</Text>
+            )}
+          </TouchableOpacity>
+          
+          {task.status === 'open' && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.statusButton]}
+              onPress={() => handleStatusChange(task._id, 'cancelled')}
+            >
+              <Text style={styles.actionButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   const getStatusColor = (status: string) => {
@@ -183,34 +190,44 @@ const MyTasksScreen: React.FC = () => {
     );
   }
 
+  if (tasks.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyTitle}>No tasks posted yet</Text>
+        <Text style={styles.emptySubtitle}>
+          You haven't posted any tasks yet. Create your first task to get started!
+        </Text>
+        <TouchableOpacity
+          style={styles.createTaskButton}
+          onPress={() => {
+            // Navigate to create task screen
+            console.log('🔍 MyTasksScreen: Navigate to create task');
+          }}
+        >
+          <Text style={styles.createTaskButtonText}>Post Your First Task</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Tasks</Text>
-        <Text style={styles.headerSubtitle}>
-          {tasks.length} task{tasks.length !== 1 ? 's' : ''} posted
-        </Text>
+      {/* Debug Header */}
+      <View style={styles.debugHeader}>
+        <Text style={styles.debugText}>🔍 MyTasksScreen - Tasks Count: {tasks.length}</Text>
       </View>
       
-      {tasks.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>No tasks posted yet</Text>
-          <Text style={styles.emptySubtitle}>
-            Start posting tasks to see them here
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={tasks}
-          renderItem={renderTaskItem}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.taskList}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+      {/* Task List */}
+      <FlatList
+        data={tasks}
+        renderItem={renderTaskItem}
+        keyExtractor={(item) => item._id}
+        contentContainerStyle={styles.taskList}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 };
@@ -353,6 +370,17 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     fontWeight: '600',
+  },
+  debugHeader: {
+    padding: 10,
+    backgroundColor: '#E0E0E0',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  debugText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
   },
 });
 
