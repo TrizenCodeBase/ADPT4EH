@@ -3,7 +3,7 @@
 
 // API URL - Smart fallback for development vs production
 export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL ||
-  (process.env.REACT_APP_ENV === 'development' ? 'http://localhost:4000' : 'http://localhost:4000');
+  (process.env.REACT_APP_ENV === 'development' ? 'https://extrahandbackend.llp.trizenventures.com' : 'https://extrahandbackend.llp.trizenventures.com');
 
 // Environment detection - production by default
 export const isDevelopment = process.env.REACT_APP_ENV === 'development';

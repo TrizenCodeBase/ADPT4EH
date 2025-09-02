@@ -426,27 +426,55 @@ export const api = {
   },
 
   // Task management
-  createTask(body: any) {
-    return fetchWithFallback('/api/v1/tasks', { method: 'POST', body: JSON.stringify(body) });
-  },
   getTasks(params?: any) {
     const queryString = params ? `?${new URLSearchParams(params).toString()}` : '';
-    
     // Always use dev endpoint for development to get real tasks
     // This bypasses authentication requirements and gets tasks from the backend
     const endpoint = `/api/v1/dev/tasks${queryString}`;
     console.log('🔧 Using dev tasks endpoint:', endpoint);
-    
     return fetchWithFallback(endpoint);
   },
-  getTask(id: string) {
-    return fetchWithFallback(`/api/v1/tasks/${id}`);
+
+  // Get tasks posted by the current user
+  getMyTasks(params?: any) {
+    const queryString = params ? `?${new URLSearchParams(params).toString()}` : '';
+    return fetchWithAuth(`/api/v1/tasks/my-tasks${queryString}`);
   },
-  updateTask(id: string, body: any) {
-    return fetchWithFallback(`/api/v1/tasks/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+
+  // Get a single task by ID
+  getTask(taskId: string) {
+    return fetchWithAuth(`/api/v1/tasks/${taskId}`);
   },
-  deleteTask(id: string) {
-    return fetchWithFallback(`/api/v1/tasks/${id}`, { method: 'DELETE' });
+
+  // Create a new task
+  createTask(taskData: any) {
+    return fetchWithAuth('/api/v1/tasks', {
+      method: 'POST',
+      body: JSON.stringify(taskData),
+    });
+  },
+
+  // Update a task
+  updateTask(taskId: string, taskData: any) {
+    return fetchWithAuth(`/api/v1/tasks/${taskId}`, {
+      method: 'PUT',
+      body: JSON.stringify(taskData),
+    });
+  },
+
+  // Delete a task
+  deleteTask(taskId: string) {
+    return fetchWithAuth(`/api/v1/tasks/${taskId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Update task status
+  updateTaskStatus(taskId: string, status: string) {
+    return fetchWithAuth(`/api/v1/tasks/${taskId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
   },
   acceptTask(id: string) {
     return fetchWithFallback(`/api/v1/tasks/${id}/accept`, { method: 'POST' });
