@@ -27,8 +27,9 @@ module.exports = {
   entry: './index.web.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js',
+    filename: '[name].[contenthash].js',
     publicPath: '/',
+    clean: true, // Clean dist folder before each build
   },
   resolve: {
     alias: {
@@ -122,6 +123,9 @@ module.exports = {
     },
     headers: {
       'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
     },
     setupMiddlewares: (middlewares, devServer) => {
       // Add custom middleware for proper MIME types

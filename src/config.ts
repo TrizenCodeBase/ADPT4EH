@@ -1,14 +1,16 @@
 // Configuration file for production-ready environment switching
 // PRODUCTION CONFIGURATION - All URLs point to production
 
-// API URL - Production Backend URL
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://extrahandbackend.llp.trizenventures.com';
+// API URL - Smart fallback for development vs production
+export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL ||
+  (process.env.REACT_APP_ENV === 'development' ? 'http://localhost:4000' : 'http://localhost:4000');
 
 // Environment detection - production by default
 export const isDevelopment = process.env.REACT_APP_ENV === 'development';
 
 // Firebase configuration (same for both environments)
 export const FIREBASE_CONFIG = {
+
   apiKey: "AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw",
   authDomain: "extrahand-app.firebaseapp.com",
   projectId: "extrahand-app",

@@ -185,6 +185,70 @@ class SessionManager {
     return session.isAuthenticated && onboardingState !== null && onboardingState.step !== 'complete';
   }
 
+  // Check data consistency between Firebase Auth and backend
+  checkDataConsistency(userData: any, currentUser: any): {
+    isConsistent: boolean;
+    issues: string[];
+    recommendations: string[];
+  } {
+    const issues: string[] = [];
+    const recommendations: string[] = [];
+    
+    // Check if user has UID
+    if (!currentUser?.uid) {
+      issues.push('No Firebase UID found');
+      recommendations.push('Please log in again');
+    }
+    
+    // Check if profile exists
+    if (!userData) {
+      issues.push('No profile data found');
+      recommendations.push('Complete your profile setup');
+    }
+    
+    // Check if UID matches between Firebase and backend
+    if (currentUser?.uid && userData?.uid && currentUser.uid !== userData.uid) {
+      issues.push('UID mismatch between Firebase and backend');
+      recommendations.push('Contact support - this is a system error');
+    }
+    
+    // Check if onboarding status is consistent with actual data
+    if (userData?.onboardingStatus) {
+      const { completedSteps, isCompleted } = userData.onboardingStatus;
+      
+      // Check if location step is marked complete but no location data
+      if (completedSteps.location && !userData.location) {
+        issues.push('Onboarding shows location complete but no location data found');
+        recommendations.push('Re-select your location');
+      }
+      
+      // Check if roles step is marked complete but no roles data
+      if (completedSteps.roles && (!userData.roles || userData.roles.length === 0)) {
+        issues.push('Onboarding shows roles complete but no roles data found');
+        recommendations.push('Re-select your roles');
+      }
+      
+      // Check if onboarding is marked complete but missing required data
+      if (isCompleted && (!userData.location || !userData.roles)) {
+        issues.push('Onboarding marked complete but missing required data');
+        recommendations.push('Complete your profile setup');
+      }
+    }
+    
+    const isConsistent = issues.length === 0;
+    
+    if (!isConsistent) {
+      console.warn('⚠️ Data consistency issues found:', issues);
+      console.warn('💡 Recommendations:', recommendations);
+    }
+    
+    return {
+      isConsistent,
+      issues,
+      recommendations
+    };
+  }
+
   // Get default session
   private getDefaultSession(): SessionData {
     return {

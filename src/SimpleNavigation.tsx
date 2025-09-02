@@ -275,7 +275,16 @@ const SimpleNavigation: React.FC = () => {
     // First, check if backend has onboarding status
     if (userData.onboardingStatus) {
       console.log('🔍 Using backend onboarding status:', userData.onboardingStatus);
-      return userData.onboardingStatus.isCompleted;
+      
+      // If backend says it's complete, trust it
+      if (userData.onboardingStatus.isCompleted) {
+        console.log('✅ Backend says onboarding is complete');
+        return true;
+      }
+      
+      // If backend says it's not complete, check if we have all the required data anyway
+      // This handles cases where the backend status might be out of sync
+      console.log('⚠️ Backend says onboarding not complete, but checking actual data...');
     }
     
     // Fallback to frontend logic for backward compatibility
@@ -315,6 +324,12 @@ const SimpleNavigation: React.FC = () => {
     // This ensures users complete the full onboarding flow
     const result = hasRoles && hasLocation;
     console.log('🔍 hasCompletedOnboarding result (fallback):', result);
+    
+    // If we have the data but backend says incomplete, log a warning
+    if (result && userData.onboardingStatus && !userData.onboardingStatus.isCompleted) {
+      console.warn('⚠️ Frontend thinks onboarding is complete but backend disagrees. This might indicate a backend sync issue.');
+    }
+    
     return result;
   }, [currentUser, userData]);
 
@@ -329,6 +344,26 @@ const SimpleNavigation: React.FC = () => {
       hasUserData: !!userData,
       userData: userData
     });
+    
+    // Check data consistency between Firebase Auth and backend
+    if (currentUser && userData) {
+      const consistencyCheck = sessionManager.checkDataConsistency(userData, currentUser);
+      if (!consistencyCheck.isConsistent) {
+        console.warn('⚠️ Data consistency issues detected:', consistencyCheck.issues);
+        console.warn('💡 Recommendations:', consistencyCheck.recommendations);
+        
+        // If there are critical consistency issues, redirect to appropriate fix
+        if (consistencyCheck.issues.some(issue => issue.includes('UID mismatch'))) {
+          console.error('🚨 Critical UID mismatch - redirecting to login');
+          return 'Login';
+        }
+        
+        if (consistencyCheck.issues.some(issue => issue.includes('No profile data'))) {
+          console.log('🔄 Profile data missing - redirecting to onboarding');
+          return 'ChooseLocationMethod';
+        }
+      }
+    }
     
     // If still loading auth state, show loading state instead of landing
     // This prevents the "swinging" effect where users briefly see Landing page
@@ -493,6 +528,19 @@ const SimpleNavigation: React.FC = () => {
         (!userData.location || (typeof userData.location === 'object' && (!userData.location.lat || !userData.location.lng)))) {
       console.log('🔄 User on home screen with roles but no location - redirecting to ChooseLocationMethod');
       return 'ChooseLocationMethod';
+    }
+    
+    // DEBUG: Log why we're redirecting from home screens
+    if (currentRoute === 'PerformerHome' || currentRoute === 'PosterHome') {
+      console.log('🔍 DEBUG: User on home screen but being redirected. Details:', {
+        currentRoute,
+        hasCompletedOnboarding: hasCompletedOnboarding(),
+        hasRoles: userData?.roles && userData.roles.length > 0,
+        hasLocation: !!userData?.location,
+        locationDetails: userData?.location,
+        onboardingStatus: userData?.onboardingStatus,
+        userDataKeys: Object.keys(userData || {})
+      });
     }
     
     // If not authenticated, allow access to auth screens

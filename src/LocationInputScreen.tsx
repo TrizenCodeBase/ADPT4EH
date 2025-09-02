@@ -106,7 +106,28 @@ const LocationInputScreen = () => {
           console.log('✅ Location data saved successfully to backend API');
         } catch (error) {
           console.error('❌ Failed to save location data to backend:', error);
+          
+          // Provide user-friendly error message
+          let errorMessage = 'Failed to save your location. Please try again.';
+          
+          // Type guard to check if error has status and data properties
+          if (error && typeof error === 'object' && 'status' in error && 'data' in error) {
+            const apiError = error as any;
+            if (apiError.status === 401) {
+              errorMessage = 'Your session has expired. Please log in again.';
+            } else if (apiError.status === 400) {
+              errorMessage = 'Invalid location data. Please check your information and try again.';
+            } else if (apiError.status === 500) {
+              errorMessage = 'Server error. Please try again in a few moments.';
+            } else if (apiError.data?.message) {
+              errorMessage = apiError.data.message;
+            }
+          }
+          
+          Alert.alert('Location Save Failed', errorMessage);
+          
           // Continue with onboarding even if save fails
+          console.log('⚠️ Continuing with onboarding despite save failure');
         }
         
         // Save onboarding progress with location data
