@@ -2,7 +2,7 @@
 async function testProductionBackend() {
   console.log('🔍 Testing Production Backend...\n');
   
-  const backendUrl = 'http://localhost:4000';
+  const backendUrl = 'https://extrahandbackend.llp.trizenventures.com';
   const frontendUrl = 'https://extrahand.in';
   
   // Test 1: Backend Health Endpoint

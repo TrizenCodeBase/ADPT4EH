@@ -1,5 +1,5 @@
 // Simple test script to verify API calls
-const API_BASE_URL = 'http://localhost:4000';
+const API_BASE_URL = 'https://extrahandbackend.llp.trizenventures.com';
 
 async function testAPI() {
   console.log('🧪 Testing API endpoints...');
