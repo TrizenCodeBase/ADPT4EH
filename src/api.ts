@@ -1,5 +1,5 @@
 import { auth } from './firebase';
-import { API_BASE_URL } from './config';
+import { API_BASE_URL, CORS_CONFIG, isDevelopment } from './config';
 
 // Use the API_BASE_URL from config
 const API_BASE = API_BASE_URL;
@@ -15,6 +15,7 @@ async function fetchWithAuth(path: string, init: RequestInit = {}) {
     console.log('🔧 fetchWithAuth called with path:', path);
     console.log('🔧 API_BASE:', API_BASE);
     console.log('🔧 Full URL:', `${API_BASE}${path}`);
+    console.log('🔧 Environment:', isDevelopment ? 'development' : 'production');
     
     const user = auth.currentUser;
     
@@ -37,13 +38,18 @@ async function fetchWithAuth(path: string, init: RequestInit = {}) {
       console.log('👤 No user logged in, proceeding without authentication');
     }
     
+    // Add CORS configuration based on environment
+    const corsConfig = CORS_CONFIG[isDevelopment ? 'development' : 'production'];
+    
     console.log('🔧 Making fetch request to:', `${API_BASE}${path}`);
     console.log('🔧 Request init:', init);
     console.log('🔧 Headers:', authHeaders);
+    console.log('🔧 CORS config:', corsConfig);
     
     const res = await fetch(`${API_BASE}${path}`, {
       ...init,
       headers: authHeaders,
+      ...corsConfig,
     });
     
     if (!res.ok) {
