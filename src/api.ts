@@ -1,8 +1,8 @@
 import { auth } from './firebase';
-import { API_BASE_URL, CORS_CONFIG, isDevelopment } from './config';
+import { API_BASE_URL, getApiBaseUrl, CORS_CONFIG, isDevelopment } from './config';
 
-// Use the API_BASE_URL from config
-const API_BASE = API_BASE_URL;
+// Use the dynamic API_BASE_URL from config
+const API_BASE = getApiBaseUrl();
 
 // Custom error interface for API errors
 interface APIError extends Error {
@@ -12,10 +12,12 @@ interface APIError extends Error {
 
 async function fetchWithAuth(path: string, init: RequestInit = {}) {
   try {
+    const fullUrl = `${API_BASE}${path}`;
     console.log('🔧 fetchWithAuth called with path:', path);
     console.log('🔧 API_BASE:', API_BASE);
-    console.log('🔧 Full URL:', `${API_BASE}${path}`);
+    console.log('🔧 Full URL:', fullUrl);
     console.log('🔧 Environment:', isDevelopment ? 'development' : 'production');
+    console.log('🔧 Current origin:', typeof window !== 'undefined' ? window.location.origin : 'server');
     
     const user = auth.currentUser;
     
@@ -41,16 +43,19 @@ async function fetchWithAuth(path: string, init: RequestInit = {}) {
     // Add CORS configuration based on environment
     const corsConfig = CORS_CONFIG[isDevelopment ? 'development' : 'production'];
     
-    console.log('🔧 Making fetch request to:', `${API_BASE}${path}`);
+    console.log('🔧 Making fetch request to:', fullUrl);
     console.log('🔧 Request init:', init);
     console.log('🔧 Headers:', authHeaders);
     console.log('🔧 CORS config:', corsConfig);
     
-    const res = await fetch(`${API_BASE}${path}`, {
+    const res = await fetch(fullUrl, {
       ...init,
       headers: authHeaders,
       ...corsConfig,
     });
+    
+    console.log('🔧 Response status:', res.status);
+    console.log('🔧 Response headers:', Object.fromEntries(res.headers.entries()));
     
     if (!res.ok) {
       const text = await res.text().catch(() => '');
@@ -68,6 +73,7 @@ async function fetchWithAuth(path: string, init: RequestInit = {}) {
       error.data = errorData;
       
       console.error(`❌ API Error ${res.status}:`, errorData);
+      console.error(`❌ Response text:`, text);
       throw error;
     }
     
@@ -76,6 +82,17 @@ async function fetchWithAuth(path: string, init: RequestInit = {}) {
     return data;
   } catch (error) {
     console.error('🚨 API Error:', error);
+    console.error('🚨 Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
+    // Check if it's a network error
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      console.error('🚨 Network error detected - possible CORS or connectivity issue');
+      console.error('🚨 Check if backend is running and CORS is properly configured');
+    }
     
     // Enhance error with more context
     if (error instanceof Error) {

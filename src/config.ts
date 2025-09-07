@@ -8,6 +8,18 @@ export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL ||
     : 'https://extrahandbackend.llp.trizenventures.com'  // Production backend
   );
 
+// Ensure we always use the production backend for production builds
+export const getApiBaseUrl = () => {
+  // Check if we're in production by looking at the hostname
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'extrahand.in' || hostname === 'www.extrahand.in') {
+      return 'https://extrahandbackend.llp.trizenventures.com';
+    }
+  }
+  return API_BASE_URL;
+};
+
 // Environment detection - production by default
 export const isDevelopment = process.env.REACT_APP_ENV === 'development';
 
