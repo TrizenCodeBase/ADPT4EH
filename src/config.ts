@@ -4,8 +4,8 @@
 // API URL - Smart fallback for development vs production
 export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 
   (process.env.REACT_APP_ENV === 'development' 
-    ? 'http://localhost:4000'  // Local backend for development
-    : 'http://localhost:4000'  // Production backend
+    ? 'https://extrahandbackend.llp.trizenventures.com'  // Local backend for development
+    : 'https://extrahandbackend.llp.trizenventures.com'  // Production backend
   );
 
 // Ensure we always use the production backend for production builds
@@ -14,7 +14,7 @@ export const getApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     if (hostname === 'extrahand.in' || hostname === 'www.extrahand.in') {
-      return 'http://localhost:4000';
+      return 'https://extrahandbackend.llp.trizenventures.com';
     }
   }
   return API_BASE_URL;

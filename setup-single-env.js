@@ -32,7 +32,7 @@ NODE_ENV=development
 REACT_APP_ENV=development
 
 # API Configuration
-REACT_APP_API_BASE_URL=http://localhost:4000
+REACT_APP_API_BASE_URL=https://extrahandbackend.llp.trizenventures.com
 
 # Firebase Configuration
 REACT_APP_FIREBASE_API_KEY=AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw
