@@ -584,6 +584,54 @@ export const api = {
     };
 
     return stats;
+  },
+
+  // Chat management
+  async getChats() {
+    return fetchWithAuth('/api/v1/chats');
+  },
+
+  async startChat(otherUserId: string, relatedTask?: string, relatedApplication?: string) {
+    return fetchWithAuth('/api/v1/chats/start', {
+      method: 'POST',
+      body: JSON.stringify({
+        otherUserId,
+        relatedTask,
+        relatedApplication
+      })
+    });
+  },
+
+  async getChatMessages(chatId: string, page: number = 1, limit: number = 50) {
+    const queryString = `?page=${page}&limit=${limit}`;
+    return fetchWithAuth(`/api/v1/chats/${chatId}/messages${queryString}`);
+  },
+
+  async sendMessage(chatId: string, text: string, type: string = 'text', replyTo?: string) {
+    return fetchWithAuth(`/api/v1/chats/${chatId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({
+        text,
+        type,
+        replyTo
+      })
+    });
+  },
+
+  async markChatAsRead(chatId: string) {
+    return fetchWithAuth(`/api/v1/chats/${chatId}/read`, {
+      method: 'POST'
+    });
+  },
+
+  async getChatDetails(chatId: string) {
+    return fetchWithAuth(`/api/v1/chats/${chatId}`);
+  },
+
+  // User search
+  async searchUsers(query: string, limit: number = 10) {
+    const queryString = `?q=${encodeURIComponent(query)}&limit=${limit}`;
+    return fetchWithAuth(`/api/v1/profiles/search${queryString}`);
   }
 };
 
