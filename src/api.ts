@@ -451,11 +451,11 @@ export const api = {
   // Task management
   getTasks(params?: any) {
     const queryString = params ? `?${new URLSearchParams(params).toString()}` : '';
-    // Always use dev endpoint for development to get real tasks
-    // This bypasses authentication requirements and gets tasks from the backend
-    const endpoint = `/api/v1/dev/tasks${queryString}`;
-    console.log('🔧 Using dev tasks endpoint:', endpoint);
-    return fetchWithFallback(endpoint);
+    // Use appropriate endpoint based on environment
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const endpoint = isDevelopment ? `/api/v1/dev/tasks${queryString}` : `/api/v1/tasks${queryString}`;
+    console.log('🔧 Using tasks endpoint:', endpoint, 'Environment:', process.env.NODE_ENV);
+    return isDevelopment ? fetchWithFallback(endpoint) : fetchWithAuth(endpoint);
   },
 
   // Get tasks posted by the current user
