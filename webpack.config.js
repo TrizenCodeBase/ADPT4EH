@@ -3,14 +3,13 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
 
-// Load environment variables from appropriate .env file
+// Load environment variables from .env file
 const isProduction = process.env.NODE_ENV === 'production';
-const envFile = isProduction ? 'env.production' : 'env.development';
 
 try {
-  require('dotenv').config({ path: path.resolve(__dirname, envFile) });
+  require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 } catch (error) {
-  console.log(`No ${envFile} file found, using default values`);
+  console.log('No .env file found, using default values');
 }
 
 // Debug environment variables
@@ -89,6 +88,9 @@ module.exports = {
     }),
     new webpack.DefinePlugin({
       'process.env': {
+        NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
+        REACT_APP_ENV: JSON.stringify(process.env.REACT_APP_ENV || 'development'),
+        REACT_APP_API_BASE_URL: JSON.stringify(process.env.REACT_APP_API_BASE_URL || 'http://localhost:4000'),
         REACT_APP_FIREBASE_API_KEY: JSON.stringify(process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyAFo3Su1b9CoW3BS-D-Cvoi9fuNrdHw0Yw'),
         REACT_APP_FIREBASE_AUTH_DOMAIN: JSON.stringify(process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || 'extrahand-app.firebaseapp.com'),
         REACT_APP_FIREBASE_PROJECT_ID: JSON.stringify(process.env.REACT_APP_FIREBASE_PROJECT_ID || 'extrahand-app'),

@@ -13,9 +13,9 @@ const isAnalyze = process.argv.includes('--analyze');
 
 // Load environment variables from .env file if it exists
 try {
-  require('dotenv').config({ path: path.resolve(__dirname, 'env.production') });
+  require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 } catch (error) {
-  console.log('No production env file found, using default values');
+  console.log('No .env file found, using default values');
 }
 
 module.exports = {

@@ -46,6 +46,12 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  
+  // Skip non-GET requests for caching
+  if (request.method !== 'GET') {
+    return;
+  }
+  
   const url = new URL(request.url);
   
   // Handle API requests
@@ -53,8 +59,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cache successful API responses
-          if (response.ok) {
+          // Only cache GET requests, not POST/PUT/DELETE
+          if (response.ok && request.method === 'GET') {
             const responseClone = response.clone();
             caches.open(API_CACHE_NAME).then((cache) => {
               cache.put(request, responseClone);
@@ -94,11 +100,13 @@ self.addEventListener('fetch', (event) => {
       .then((response) => {
         // Return cached version or fetch from network
         return response || fetch(request).then((fetchResponse) => {
-          // Cache the fetched response
-          const responseClone = fetchResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseClone);
-          });
+          // Only cache GET requests for static assets
+          if (request.method === 'GET' && fetchResponse.ok) {
+            const responseClone = fetchResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
           return fetchResponse;
         });
       })

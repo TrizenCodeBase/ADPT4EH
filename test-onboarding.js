@@ -66,7 +66,7 @@ console.log('\n📋 Test 5: Testing backend onboarding status API');
 async function testBackendAPI() {
   try {
     // Test health endpoint
-    const healthResponse = await fetch('https://extrahandbackend.llp.trizenventures.com/api/v1/health');
+    const healthResponse = await fetch('http://localhost:4000/api/v1/health');
     console.log('Backend health status:', healthResponse.status);
     
     if (healthResponse.ok) {
